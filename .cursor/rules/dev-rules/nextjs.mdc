@@ -96,7 +96,7 @@ src/
 ### 'use client' ディレクティブ
 
 ```typescript
-"use client";
+
 // クライアントコンポーネントの先頭に記述
 ```
 
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
 
 ```typescript
 // components/articles/create-article.tsx
-"use client";
+
 
 export async function createArticle(data: ArticleData) {
   try {

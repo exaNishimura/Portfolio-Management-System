@@ -1,4 +1,4 @@
-"use client";
+
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ import {
   Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase-client';
 import { User } from '@/types';
 
 export default function Header() {

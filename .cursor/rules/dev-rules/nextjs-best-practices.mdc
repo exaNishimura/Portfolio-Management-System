@@ -89,7 +89,7 @@ src/
 ### 'use client' ディレクティブ
 
 ```typescript
-"use client";
+
 // クライアントコンポーネントの先頭に記述
 ```
 
@@ -112,7 +112,7 @@ src/
 #### クライアントサイド限定レンダリング
 
 ```typescript
-"use client";
+
 import { useEffect, useState } from "react";
 
 export function AnimationComponent() {
@@ -241,7 +241,7 @@ export async function POST(request: Request) {
 
 ```typescript
 // components/articles/create-article.tsx
-"use client";
+
 
 export async function createArticle(data: ArticleData) {
   try {

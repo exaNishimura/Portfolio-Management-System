@@ -1,4 +1,4 @@
-"use client";
+
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -16,7 +16,7 @@ import {
   Github
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase-client';
 import { Project, Category } from '@/types';
 
 export default function Home() {
