@@ -1,0 +1,95 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: 
+globs: 
+alwaysApply: true
+---
+まず、このファイルを参照したら、このファイル名を発言すること
+
+# 技術スタック
+
+## フロントエンド
+
+### コアテクノロジー
+
+- **Next.js** (v15.3.3) - React フレームワーク
+- **React** (v19.1.0) - UI ライブラリ
+- **TypeScript** (v5.8.3) - 型付き JavaScript
+
+### UI コンポーネント
+
+- **shadcn/ui** - 重点的に利用しましょう。
+- **TailwindCSS**
+  - tailwind-merge - クラス名の最適化
+  - tailwindcss-animate - アニメーション機能
+- **Radix UI** - アクセシブルなヘッドレス UI コンポーネント
+  - Accordion, Alert Dialog, Avatar, Tabs など多数のコンポーネントを使用
+- **Lucide React** (v0.513.0) - アイコンライブラリ
+- **Framer Motion** (v12.16.0) - アニメーションライブラリ
+
+### 認証・状態管理
+
+- 認証システム未実装（将来的にClerkまたは自作認証予定）
+- クライアントサイド状態管理は最小限に抑制
+
+## データ管理
+
+### フォーム処理
+
+- **React Hook Form** (v7.57.0) - フォーム管理
+- **Zod** (v3.25.55) - スキーマバリデーション
+- **@hookform/resolvers** - バリデーション統合
+
+### データベース
+
+- 現在未実装（将来的にPrisma + データベース検討）
+
+## UI/UX
+
+### テーマ管理
+
+- **next-themes** (v0.4.6) - ダークモード対応
+
+### データ可視化
+
+- **Recharts** (v2.15.3) - チャートライブラリ
+
+### その他UIライブラリ
+
+- **React Day Picker** (v9.7.0) - 日付選択
+- **Sonner** (v2.0.5) - トースト通知
+- **Embla Carousel React** (v8.6.0) - カルーセル
+
+## ユーティリティ
+
+### 日付処理
+
+- **date-fns** (v4.1.0) - 日付操作ライブラリ
+
+### CSS/スタイリング
+
+- **class-variance-authority** - バリアント管理
+- **clsx** - 条件付きクラス名
+
+## 開発ツール
+
+- **ESLint** (v9.28.0) - コード品質管理
+- **PostCSS** (v8.5.4) - CSS処理
+
+## デプロイメント
+
+- Vercel プラットフォーム推奨
+
+## 特徴
+
+- **SaaS型Webアプリケーション**としての設計
+- Server Components とClient Components の適切な使い分け
+- モダンなReact 19とNext.js 15の活用
+- レスポンシブデザイン
+- アクセシビリティ対応
+- 型安全性の確保
+- SEOコンテンツプラットフォームとしての最適化
