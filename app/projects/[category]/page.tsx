@@ -1,12 +1,18 @@
-import { useParams } from 'next/navigation';
+interface Props {
+  params: Promise<{ category: string }>;
+}
 
-export default function CategoryProjectsPage() {
-  const params = useParams();
-  const category = params?.category || '';
-  return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold mb-4">{category} の案件一覧</h1>
-      {/* カテゴリ別案件リストをここに表示予定 */}
-    </main>
-  );
+export default async function CategoryProjectsPage({ params }: Props) {
+  const { category } = await params;
+  // params.category を使ってカテゴリ別プロジェクト一覧を実装
+  return <main className="p-8">カテゴリ別プロジェクト一覧: {category}</main>;
+}
+
+export async function generateStaticParams() {
+  return [
+    { category: 'nextjs' },
+    { category: 'wordpress' },
+    { category: 'react' },
+    { category: 'other' },
+  ];
 } 

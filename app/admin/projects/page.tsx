@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import ProjectAddForm from './add-form';
 
+export const dynamic = 'force-dynamic';
+
 // 仮のダミーデータ
 const dummyProjects = [
   {

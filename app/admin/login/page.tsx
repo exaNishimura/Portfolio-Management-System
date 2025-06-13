@@ -1,9 +1,14 @@
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+'use client';
+
+import { createBrowserClient } from '@supabase/ssr';
 import { Button } from '@/components/ui/button';
 
 export default function AdminLoginPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleLogin = async () => {
     await supabase.auth.signInWithOAuth({ provider: 'google' });

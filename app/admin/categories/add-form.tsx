@@ -7,9 +7,15 @@ import { Card } from '@/components/ui/card';
 export default function CategoryAddForm({ onSubmit }: { onSubmit?: (data: any) => void }) {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
+  const handleFormSubmit = (data: any) => {
+    if (onSubmit) {
+      onSubmit(data);
+    }
+  };
+
   return (
     <Card className="p-6 mb-6 max-w-xl mx-auto">
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="mb-4">
           <label className="block mb-1 font-medium">名前</label>
           <Input {...register("name", { required: true })} />

@@ -1,4 +1,4 @@
-
+"use client";
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -15,43 +15,32 @@ import {
   ExternalLink,
   Github
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase-client';
+import { createClient } from '@supabase/supabase-js';
 import { Project, Category } from '@/types';
+import Image from "next/image";
+import * as LucideIcons from "lucide-react";
 
-export default function Home() {
-  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+export default async function Home() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 注目プロジェクトを取得
-        const { data: projects } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('is_featured', true)
-          .order('created_at', { ascending: false })
-          .limit(3);
+  // 注目プロジェクト
+  const { data: featuredProjectsRaw } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('is_featured', true)
+    .order('created_at', { ascending: false })
+    .limit(3);
+  const featuredProjects: Project[] = featuredProjectsRaw ?? [];
 
-        // カテゴリを取得
-        const { data: categoriesData } = await supabase
-          .from('categories')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        setFeaturedProjects(projects || []);
-        setCategories(categoriesData || []);
-      } catch (error) {
-        console.error('データの取得に失敗しました:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  // カテゴリ
+  const { data: categoriesRaw } = await supabase
+    .from('categories')
+    .select('*')
+    .order('created_at', { ascending: false });
+  const categories: Category[] = categoriesRaw ?? [];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -197,83 +186,62 @@ export default function Home() {
                 これまでに制作したプロジェクトの中から、特に注目のものをご紹介します
               </p>
             </motion.div>
-
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <p className="mt-4 text-muted-foreground">読み込み中...</p>
-              </div>
+            {featuredProjects.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">注目実績がありません</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredProjects.map((project, index) => (
-                  <motion.div key={project.id} variants={itemVariants}>
-                    <Card className="h-full hover:shadow-lg transition-shadow duration-200">
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <Badge variant="secondary">
-                            <Star className="h-3 w-3 mr-1" />
-                            注目
-                          </Badge>
-                          <Badge variant="outline">
-                            {project.project_year}
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-xl">{project.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <CardDescription>
-                          {project.description}
-                        </CardDescription>
-                        
-                        <div className="flex flex-wrap gap-1">
-                          {project.technologies.map((tech) => (
-                            <Badge key={tech} variant="outline" className="text-xs">
-                              {tech}
-                            </Badge>
-                          ))}
-                        </div>
-                        
-                        <div className="flex gap-2 pt-2">
-                          {project.project_url && (
-                            <Button size="sm" variant="outline" asChild>
-                              <a 
-                                href={project.project_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                              >
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                サイト
-                              </a>
-                            </Button>
-                          )}
-                          {project.github_url && (
-                            <Button size="sm" variant="outline" asChild>
-                              <a 
-                                href={project.github_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                              >
-                                <Github className="h-3 w-3 mr-1" />
-                                コード
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                {featuredProjects.map((project: Project) => (
+                  <Card key={project.id} className="h-full hover:shadow-lg transition-shadow duration-200">
+                    {project.image_url && (
+                      <div className="relative w-full h-48 rounded-t-md overflow-hidden">
+                        <Image src={project.image_url} alt={project.title} fill className="object-cover" />
+                      </div>
+                    )}
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <Badge variant="secondary">
+                          <Star className="h-3 w-3 mr-1" />注目
+                        </Badge>
+                        <Badge variant="outline">{project.project_year}</Badge>
+                      </div>
+                      <CardTitle className="text-xl">{project.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <CardDescription>{project.description}</CardDescription>
+                      <div className="flex flex-wrap gap-1">
+                        {(project.technologies || []).map((tech: any) => (
+                          <Badge key={tech} variant="outline" className="text-xs">{tech}</Badge>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        {project.project_url && (
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={project.project_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3 mr-1" />サイト
+                            </a>
+                          </Button>
+                        )}
+                        {project.github_url && (
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+                              <Github className="h-3 w-3 mr-1" />コード
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             )}
-
-            <motion.div variants={itemVariants} className="text-center mt-12">
+            <div className="text-center mt-12">
               <Link href="/projects">
                 <Button size="lg" variant="outline">
                   すべての制作実績を見る
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -295,28 +263,30 @@ export default function Home() {
                 様々な技術を使用してプロジェクトを進行しています
               </p>
             </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {categories.map((category, index) => (
-                <motion.div key={category.id} variants={itemVariants}>
-                  <Link href={`/projects/${category.slug}`}>
-                    <Card className="h-full hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer">
-                      <CardHeader className="text-center">
-                        <div className="h-16 w-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                          <Code2 className="h-8 w-8 text-primary" />
-                        </div>
-                        <CardTitle className="text-xl">{category.name}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <CardDescription className="text-center">
-                          {category.description}
-                        </CardDescription>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+            {categories.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">カテゴリがありません</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {categories.map((category: Category) => {
+                  const LucideIcon = (LucideIcons as any)[category.icon] || Code2;
+                  return (
+                    <Link key={category.id} href={`/projects/${category.slug}`}>
+                      <Card className="h-full hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer">
+                        <CardHeader className="text-center">
+                          <div className="h-16 w-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                            <LucideIcon className="h-8 w-8 text-primary" />
+                          </div>
+                          <CardTitle className="text-xl">{category.name}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <CardDescription className="text-center">{category.description}</CardDescription>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
