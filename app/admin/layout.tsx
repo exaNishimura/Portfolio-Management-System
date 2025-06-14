@@ -1,13 +1,16 @@
 import type { ReactNode } from "react";
-import { getSession } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import AdminSidebar from "./admin-sidebar";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const session = await getSession();
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  
   if (!session) {
     redirect("/auth/login");
   }
+  
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-neutral-900">
       <AdminSidebar />

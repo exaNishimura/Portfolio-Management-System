@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -15,10 +15,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   // Googleログイン
   const handleGoogleLogin = async () => {
@@ -29,7 +26,7 @@ export default function AdminLoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/admin`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -52,7 +49,7 @@ export default function AdminLoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${window.location.origin}/admin`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -165,6 +162,9 @@ export default function AdminLoginPage() {
               <p>ソーシャルログインのみ利用可能:</p>
               <p>• Google アカウント</p>
               <p>• GitHub アカウント</p>
+              <p className="mt-2 text-orange-600">
+                ⚠️ Google Cloud ConsoleでOAuth設定が必要です
+              </p>
             </CardContent>
           </Card>
         )}
