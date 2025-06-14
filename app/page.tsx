@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Project, Category } from '@/types';
+import { Profile } from '@/lib/types/database';
 import Image from "next/image";
 import * as LucideIcons from "lucide-react";
 import { HomeClient } from '@/components/home-client';
@@ -21,6 +22,19 @@ import { Suspense } from 'react';
 
 async function ProjectsData() {
   const supabase = await getSupabaseClient();
+  
+  // プロフィール情報を取得
+  const { data: profileRaw, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .limit(1)
+    .single();
+  
+  if (profileError) {
+    console.error('Profile error:', profileError);
+  }
+  
+  const profile: Profile | undefined = profileRaw ?? undefined;
   
   // 注目プロジェクト
   const { data: featuredProjectsRaw, error: featuredError } = await supabase
@@ -59,12 +73,14 @@ async function ProjectsData() {
   
   const categories: Category[] = categoriesRaw ?? [];
 
+  console.log('Server - profile:', profile?.name);
   console.log('Server - featuredProjects:', featuredProjects.length);
   console.log('Server - allProjects:', allProjects.length);
   console.log('Server - categories:', categories.length);
 
   return (
     <HomeClient 
+      profile={profile}
       featuredProjects={featuredProjects}
       allProjects={allProjects}
       categories={categories}
@@ -75,7 +91,7 @@ async function ProjectsData() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<HomeClient featuredProjects={[]} allProjects={[]} categories={[]} isLoading={true} />}>
+    <Suspense fallback={<HomeClient profile={undefined} featuredProjects={[]} allProjects={[]} categories={[]} isLoading={true} />}>
       <ProjectsData />
     </Suspense>
   );

@@ -26,7 +26,8 @@ import {
   ChevronUp,
   Code
 } from 'lucide-react';
-import { Project, Category, Profile } from '@/types';
+import { Project, Category } from '@/types';
+import { Profile } from '@/lib/types/database';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 
 // ダミーデータ
@@ -35,15 +36,16 @@ const dummyProfile: Profile = {
   name: 'Web Developer',
   title: 'フルスタック開発者',
   bio: 'モダンなWeb技術を使用して、ユーザーフレンドリーなWebアプリケーションを開発しています。フロントエンドからバックエンドまで幅広く対応可能です。',
-  image_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+  avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
   location: '東京, 日本',
   experience_years: 5,
   email: 'contact@example.com',
-  skills: ['React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'PostgreSQL'],
+  phone: null,
+  website: null,
   github_url: 'https://github.com',
   linkedin_url: 'https://linkedin.com',
-  website_url: 'https://twitter.com',
-  is_active: true,
+  twitter_url: 'https://twitter.com',
+  skills: ['React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'PostgreSQL'],
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 };
@@ -126,7 +128,7 @@ const dummyProjects: Project[] = [
   }
 ];
 
-export function HomeClient({ featuredProjects, categories, allProjects = [], profile = dummyProfile, isLoading = false }: HomeClientProps) {
+export function HomeClient({ featuredProjects, categories, allProjects = [], profile, isLoading = false }: HomeClientProps) {
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isFilterSticky, setIsFilterSticky] = useState(false);
@@ -167,6 +169,9 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
   useEffect(() => {
     localStorage.setItem('sidebarMinimized', JSON.stringify(isSidebarMinimized));
   }, [isSidebarMinimized]);
+
+  // プロフィール情報の処理（データベースから取得したものを優先、なければダミーデータ）
+  const profileToUse = profile || dummyProfile;
 
   // 実データを優先し、データがない場合のみダミーデータを使用
   const projectsToUse = allProjects.length > 0 ? allProjects : dummyProjects;
@@ -373,42 +378,48 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
               <div className="flex items-center space-x-4">
                 <div className="relative w-20 h-20 rounded-full overflow-hidden">
                   <Image 
-                    src={profile.image_url || '/placeholder-avatar.jpg'} 
-                    alt={profile.name}
+                    src={profileToUse.avatar_url || '/placeholder-avatar.jpg'} 
+                    alt={profileToUse.name}
                     fill
                     className="object-cover"
                   />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold">{profile.name}</h1>
-                  <p className="text-lg text-muted-foreground">{profile.title}</p>
+                  <h1 className="text-2xl md:text-3xl font-bold">{profileToUse.name}</h1>
+                  <p className="text-lg text-muted-foreground">{profileToUse.title}</p>
                 </div>
               </div>
               
               <p className="text-base text-muted-foreground leading-relaxed">
-                {profile.bio}
+                {profileToUse.bio}
               </p>
               
               <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  {profile.location}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {profile.experience_years}年の経験
-                </div>
-                <div className="flex items-center gap-1">
-                  <Mail className="h-4 w-4" />
-                  {profile.email}
-                </div>
+                {profileToUse.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    {profileToUse.location}
+                  </div>
+                )}
+                {profileToUse.experience_years && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {profileToUse.experience_years}年の経験
+                  </div>
+                )}
+                {profileToUse.email && (
+                  <div className="flex items-center gap-1">
+                    <Mail className="h-4 w-4" />
+                    {profileToUse.email}
+                  </div>
+                )}
               </div>
               
               {/* スキルバッジ */}
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">主要スキル</h3>
                 <div className="flex flex-wrap gap-2">
-                  {profile.skills.map((skill) => (
+                  {profileToUse.skills.map((skill) => (
                     <Badge key={skill} variant="secondary">
                       {skill}
                     </Badge>
@@ -418,24 +429,24 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
               
               {/* SNSリンク */}
               <div className="flex gap-4">
-                {profile.github_url && (
+                {profileToUse.github_url && (
                   <Button variant="outline" size="sm" asChild>
-                    <a href={profile.github_url} target="_blank" rel="noopener noreferrer">
+                    <a href={profileToUse.github_url} target="_blank" rel="noopener noreferrer">
                       <Github className="h-4 w-4 mr-2" />
                       GitHub
                     </a>
                   </Button>
                 )}
-                {profile.website_url && (
+                {profileToUse.twitter_url && (
                   <Button variant="outline" size="sm" asChild>
-                    <a href={profile.website_url} target="_blank" rel="noopener noreferrer">
+                    <a href={profileToUse.twitter_url} target="_blank" rel="noopener noreferrer">
                       Twitter
                     </a>
                   </Button>
                 )}
-                {profile.linkedin_url && (
+                {profileToUse.linkedin_url && (
                   <Button variant="outline" size="sm" asChild>
-                    <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
+                    <a href={profileToUse.linkedin_url} target="_blank" rel="noopener noreferrer">
                       LinkedIn
                     </a>
                   </Button>
