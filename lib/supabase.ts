@@ -1,11 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
-import { createServerClient, createBrowserClient } from '@supabase/ssr';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { createServerClient } from '@supabase/ssr';
 
 export type Database = {
   public: {
@@ -88,7 +82,8 @@ export type Database = {
   };
 };
 
-export async function getSession() {
+// サーバーサイド用のSupabaseクライアント作成関数
+export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
   const getAll = async () => {
     const all = [];
@@ -97,11 +92,21 @@ export async function getSession() {
     }
     return all;
   };
-  const supabase = createServerClient(
+  
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { cookies: { getAll } }
   );
-  const { data: { session } } = await supabase.auth.getSession();
+}
+
+// サーバーサイド用のSupabaseクライアント（使用時に作成）
+export async function getSupabaseClient() {
+  return await createServerSupabaseClient();
+}
+
+export async function getSession() {
+  const supabaseClient = await createServerSupabaseClient();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   return session;
 }

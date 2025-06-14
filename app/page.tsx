@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,281 +12,71 @@ import {
   ExternalLink,
   Github
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase';
 import { Project, Category } from '@/types';
 import Image from "next/image";
 import * as LucideIcons from "lucide-react";
+import { HomeClient } from '@/components/home-client';
+import { Suspense } from 'react';
 
-export default async function Home() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
+async function ProjectsData() {
+  const supabase = await getSupabaseClient();
+  
   // 注目プロジェクト
-  const { data: featuredProjectsRaw } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('is_featured', true)
-    .order('created_at', { ascending: false })
-    .limit(3);
+  const { data: featuredProjectsRaw, error: featuredError } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('is_featured', true)
+    .order('created_at', { ascending: false });
+  
+  if (featuredError) {
+    console.error('Featured projects error:', featuredError);
+  }
+  
   const featuredProjects: Project[] = featuredProjectsRaw ?? [];
 
-  // カテゴリ
-  const { data: categoriesRaw } = await supabase
-    .from('categories')
+  // 全プロジェクト
+  const { data: allProjectsRaw, error: allError } = await supabase
+    .from('projects')
     .select('*')
     .order('created_at', { ascending: false });
+  
+  if (allError) {
+    console.error('All projects error:', allError);
+  }
+  
+  const allProjects: Project[] = allProjectsRaw ?? [];
+
+  // カテゴリ
+  const { data: categoriesRaw, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+  if (categoriesError) {
+    console.error('Categories error:', categoriesError);
+  }
+  
   const categories: Category[] = categoriesRaw ?? [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
+  console.log('Server - featuredProjects:', featuredProjects.length);
+  console.log('Server - allProjects:', allProjects.length);
+  console.log('Server - categories:', categories.length);
 
   return (
-    <div className="min-h-screen">
-      {/* ヒーローセクション */}
-      <section className="py-20 px-4 bg-gradient-to-br from-background to-muted/50">
-        <motion.div 
-          className="container mx-auto max-w-4xl text-center"
-          initial="hidden"
-          animate="visible"
-          variants={containerVariants}
-        >
-          <motion.div variants={itemVariants} className="mb-6">
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              Web Developer
-            </h1>
-            <h2 className="text-2xl md:text-3xl font-semibold mt-2 text-muted-foreground">
-              Portfolio Site
-            </h2>
-          </motion.div>
-          
-          <motion.p 
-            variants={itemVariants}
-            className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
-          >
-            WordPress、Next.js、Reactを使用したWebサイト・アプリケーション開発を行っています。
-            クライアントのニーズに応じた最適なソリューションを提供いたします。
-          </motion.p>
-          
-          <motion.div 
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link href="/projects">
-              <Button size="lg" className="w-full sm:w-auto">
-                制作実績を見る
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                お問い合わせ
-              </Button>
-            </Link>
-          </motion.div>
-        </motion.div>
-      </section>
+    <HomeClient 
+      featuredProjects={featuredProjects}
+      allProjects={allProjects}
+      categories={categories}
+      isLoading={false}
+    />
+  );
+}
 
-      {/* 特徴セクション */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-          >
-            <motion.div variants={itemVariants} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                提供サービス
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                モダンな技術を使用して、高品質なWebサイト・アプリケーションを制作いたします
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  icon: Globe,
-                  title: "Webサイト制作",
-                  description: "WordPress、HTML/CSSを使用したレスポンシブサイト制作"
-                },
-                {
-                  icon: Code2,
-                  title: "フロントエンド開発",
-                  description: "React、Next.jsを使用したモダンなWebアプリケーション開発"
-                },
-                {
-                  icon: Smartphone,
-                  title: "レスポンシブデザイン",
-                  description: "すべてのデバイスで最適な表示を実現するレスポンシブデザイン"
-                },
-                {
-                  icon: Zap,
-                  title: "パフォーマンス最適化",
-                  description: "高速表示とSEO対策を考慮した最適化"
-                }
-              ].map((service, index) => (
-                <motion.div key={index} variants={itemVariants}>
-                  <Card className="h-full hover:shadow-lg transition-shadow duration-200">
-                    <CardHeader className="text-center">
-                      <service.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
-                      <CardTitle className="text-xl">{service.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-center">
-                        {service.description}
-                      </CardDescription>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 注目プロジェクトセクション */}
-      <section className="py-20 px-4 bg-muted/50">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-          >
-            <motion.div variants={itemVariants} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                注目の制作実績
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                これまでに制作したプロジェクトの中から、特に注目のものをご紹介します
-              </p>
-            </motion.div>
-            {featuredProjects.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">注目実績がありません</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredProjects.map((project: Project) => (
-                  <Card key={project.id} className="h-full hover:shadow-lg transition-shadow duration-200">
-                    {project.image_url && (
-                      <div className="relative w-full h-48 rounded-t-md overflow-hidden">
-                        <Image src={project.image_url} alt={project.title} fill className="object-cover" />
-                      </div>
-                    )}
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <Badge variant="secondary">
-                          <Star className="h-3 w-3 mr-1" />注目
-                        </Badge>
-                        <Badge variant="outline">{project.project_year}</Badge>
-                      </div>
-                      <CardTitle className="text-xl">{project.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <CardDescription>{project.description}</CardDescription>
-                      <div className="flex flex-wrap gap-1">
-                        {(project.technologies || []).map((tech: any) => (
-                          <Badge key={tech} variant="outline" className="text-xs">{tech}</Badge>
-                        ))}
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        {project.project_url && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={project.project_url} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-3 w-3 mr-1" />サイト
-                            </a>
-                          </Button>
-                        )}
-                        {project.github_url && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={project.github_url} target="_blank" rel="noopener noreferrer">
-                              <Github className="h-3 w-3 mr-1" />コード
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-            <div className="text-center mt-12">
-              <Link href="/projects">
-                <Button size="lg" variant="outline">
-                  すべての制作実績を見る
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 技術スタックセクション */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={containerVariants}
-          >
-            <motion.div variants={itemVariants} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                技術カテゴリ
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                様々な技術を使用してプロジェクトを進行しています
-              </p>
-            </motion.div>
-            {categories.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">カテゴリがありません</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {categories.map((category: Category) => {
-                  const LucideIcon = (LucideIcons as any)[category.icon] || Code2;
-                  return (
-                    <Link key={category.id} href={`/projects/${category.slug}`}>
-                      <Card className="h-full hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer">
-                        <CardHeader className="text-center">
-                          <div className="h-16 w-16 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
-                            <LucideIcon className="h-8 w-8 text-primary" />
-                          </div>
-                          <CardTitle className="text-xl">{category.name}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <CardDescription className="text-center">{category.description}</CardDescription>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </section>
-    </div>
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeClient featuredProjects={[]} allProjects={[]} categories={[]} isLoading={true} />}>
+      <ProjectsData />
+    </Suspense>
   );
 }

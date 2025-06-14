@@ -52,7 +52,6 @@ export default function Header() {
 
   const navigation = [
     { name: 'ホーム', href: '/', icon: Home },
-    { name: 'プロジェクト', href: '/projects', icon: FolderOpen },
     { name: 'お問い合わせ', href: '/contact', icon: Mail },
   ];
 
@@ -69,22 +68,21 @@ export default function Header() {
           <span className="font-bold text-xl">Portfolio</span>
         </Link>
 
-        {/* デスクトップナビゲーション */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {navigation.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="text-foreground/60 hover:text-foreground transition-colors duration-200 flex items-center space-x-1"
-            >
-              <item.icon className="h-4 w-4" />
-              <span>{item.name}</span>
-            </Link>
-          ))}
-        </nav>
-
-        {/* 右側のボタン群 */}
+        {/* 右側のボタン群とナビゲーション */}
         <div className="flex items-center space-x-2">
+          {/* デスクトップナビゲーション */}
+          <nav className="hidden md:flex items-center space-x-6 mr-4">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-foreground/60 hover:text-foreground transition-colors duration-200 flex items-center space-x-1"
+              >
+                <item.icon className="h-4 w-4" />
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
           {/* テーマ切り替えボタン */}
           <Button
             variant="ghost"
