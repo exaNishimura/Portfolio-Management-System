@@ -39,7 +39,7 @@ export default function Footer() {
                 <span className="text-sm">GitHub</span>
               </a>
               <Link
-                href="/admin/login"
+                href="/auth/login"
                 className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center space-x-2"
                 aria-label="管理者ログイン"
               >
