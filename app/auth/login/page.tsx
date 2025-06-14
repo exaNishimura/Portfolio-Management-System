@@ -158,13 +158,31 @@ export default function AdminLoginPage() {
             <CardHeader>
               <CardTitle className="text-sm">開発用情報</CardTitle>
             </CardHeader>
-            <CardContent className="text-xs text-muted-foreground space-y-1">
-              <p>ソーシャルログインのみ利用可能:</p>
-              <p>• Google アカウント</p>
-              <p>• GitHub アカウント</p>
-              <p className="mt-2 text-orange-600">
-                ⚠️ Google Cloud ConsoleでOAuth設定が必要です
-              </p>
+            <CardContent className="text-xs text-muted-foreground space-y-2">
+              <div>
+                <p className="font-medium">利用可能な認証方法:</p>
+                <p>• Google アカウント</p>
+                <p>• GitHub アカウント</p>
+              </div>
+              
+              <div className="pt-2 border-t">
+                <p className="font-medium text-orange-600">⚠️ 設定が必要:</p>
+                <p>1. Google Cloud Console でOAuth設定</p>
+                <p>2. GitHub OAuth App作成と設定</p>
+                <p>3. Supabaseダッシュボードでプロバイダー有効化</p>
+              </div>
+              
+              <div className="pt-2 border-t">
+                <p className="font-medium">GitHub OAuth設定:</p>
+                <p>• Callback URL: https://cxvxovkxirsfpzsvcwrh.supabase.co/auth/v1/callback</p>
+                <p>• 詳細手順: docs/github-oauth-setup.md</p>
+              </div>
+              
+              <div className="pt-2 border-t">
+                <p className="font-medium">管理者設定:</p>
+                <p>• 環境変数 ADMIN_EMAILS で管理者を指定</p>
+                <p>• 現在の管理者: {process.env.NEXT_PUBLIC_ADMIN_EMAILS || 'exasolcojp@gmail.com'}</p>
+              </div>
             </CardContent>
           </Card>
         )}
