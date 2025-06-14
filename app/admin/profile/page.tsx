@@ -1,42 +1,23 @@
-import { Suspense } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { getProfile } from '@/dal/profiles';
 import ProfileForm from './profile-form';
 
-export default function ProfilePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function ProfileManagePage() {
+  const profile = await getProfile();
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">プロフィール管理</h1>
+    <main className="p-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">プロフィール管理</h1>
         <p className="text-muted-foreground">
-          サイトに表示されるプロフィール情報を管理します。
+          ポートフォリオサイトに表示するプロフィール情報を管理します。
         </p>
       </div>
 
-      <Suspense fallback={<ProfileSkeleton />}>
+      <div className="max-w-4xl">
         <ProfileForm />
-      </Suspense>
-    </div>
-  );
-}
-
-function ProfileSkeleton() {
-  return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-4 w-96" />
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-        <Skeleton className="h-32 w-full" />
-        <div className="flex justify-end">
-          <Skeleton className="h-10 w-24" />
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </main>
   );
 } 
