@@ -130,6 +130,7 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isFilterSticky, setIsFilterSticky] = useState(false);
+  const [filterTopPosition, setFilterTopPosition] = useState('50%'); // フィルターの上端位置
   const [isTechFilterOpen, setIsTechFilterOpen] = useState(false);
   const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(true); // 初期状態を閉じた状態に変更
@@ -226,21 +227,87 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
     return sorted;
   }, [projectsToUse, selectedTechnologies, sortBy]);
 
-  // スクロール監視でフィルターをスティッキーに
+  // セクション内でのみフィルターを表示（ハイブリッドアプローチ）
   useEffect(() => {
+    const projectsSection = document.getElementById('projects-section');
+    if (!projectsSection) return;
+
+    let isInSection = false;
+
+    // Intersection Observer でセクションの可視性を監視
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isInSection = entry.isIntersecting;
+          console.log('Section visibility changed:', isInSection);
+          checkFilterVisibility();
+        });
+      },
+      {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      }
+    );
+
+    // スクロールイベントでセクション内の位置を詳細に監視
+    const checkFilterVisibility = () => {
+      if (!isInSection) {
+        setIsFilterSticky(false);
+        return;
+      }
+
+      const rect = projectsSection.getBoundingClientRect();
+      const sectionTop = rect.top;
+      const sectionBottom = rect.bottom;
+      const windowHeight = window.innerHeight;
+
+      // 実績カードグリッドの位置を取得
+      const projectsGrid = document.getElementById('projects-grid');
+      let gridTop = sectionTop; // デフォルトはセクションの上端
+      
+      if (projectsGrid) {
+        const gridRect = projectsGrid.getBoundingClientRect();
+        gridTop = gridRect.top;
+        
+        // フィルターボタンの位置をグリッドの上端に合わせる
+        const topPosition = Math.max(gridTop, 100); // 最小100px
+        setFilterTopPosition(`${topPosition}px`);
+      }
+
+      // セクションの上端が画面上部に到達し、下端がまだ画面内にある場合のみ表示
+      const shouldShow = sectionTop <= 100 && sectionBottom > 200;
+
+      console.log('Filter visibility check:', {
+        isInSection,
+        sectionTop,
+        sectionBottom,
+        gridTop,
+        windowHeight,
+        shouldShow,
+        currentSticky: isFilterSticky
+      });
+
+      setIsFilterSticky(shouldShow);
+    };
+
     const handleScroll = () => {
-      const projectsSection = document.getElementById('projects-section');
-      if (projectsSection) {
-        const rect = projectsSection.getBoundingClientRect();
-        setIsFilterSticky(rect.top <= 100);
+      if (isInSection) {
+        checkFilterVisibility();
       }
     };
 
+    observer.observe(projectsSection);
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    
+    // 初期状態をチェック
+    checkFilterVisibility();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
-
-
 
   // 状態変更を監視
   useEffect(() => {
@@ -428,254 +495,263 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
         </motion.div>
       </section>
 
-      {/* 固定フィルタータブ */}
-      <motion.div 
-        className="fixed top-1/2 right-0 transform -translate-y-1/2 z-50"
-        initial={{ x: '100%' }}
-        animate={{ x: isSidebarMinimized ? 'calc(100% - 60px)' : 0 }}
-        transition={{ duration: 0.4, ease: "easeInOut" }}
-      >
-        <div className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl transition-all duration-400 ${
-          isSidebarMinimized 
-            ? 'rounded-l-2xl w-60 h-16' 
-            : 'rounded-l-2xl w-80 min-h-96'
-        }`}>
-          {/* タブハンドル（最小化時の表示） */}
-          <AnimatePresence>
-            {isSidebarMinimized && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="h-full flex items-center justify-between px-4 cursor-pointer"
-                onClick={() => setIsSidebarMinimized(false)}
-              >
-                <div className="flex items-center gap-3">
+      {/* 固定フィルタータブ - 実績一覧セクション内でのみ表示 */}
+      <AnimatePresence>
+        {isFilterSticky && (
+          <motion.div 
+            className="fixed right-0 z-50"
+            style={{ top: filterTopPosition, transform: 'translateY(0)' }}
+            initial={{ x: '100%', opacity: 0 }}
+            animate={{ 
+              x: isSidebarMinimized ? 'calc(100% - 60px)' : 0,
+              opacity: 1
+            }}
+            exit={{ x: '100%', opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+          >
+            <div className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl transition-all duration-400 ${
+              isSidebarMinimized 
+                ? 'rounded-l-2xl w-60 h-16' 
+                : 'rounded-l-2xl w-80 min-h-96'
+            }`}>
+              {/* タブハンドル（最小化時の表示） */}
+              <AnimatePresence>
+                {isSidebarMinimized && (
                   <motion.div
-                    className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Filter className="h-5 w-5" />
-                  </motion.div>
-                  <div>
-                    <div className="text-sm font-semibold">フィルター</div>
-                    <div className="text-xs text-slate-300">
-                      {selectedTechnologies.length > 0 || sortBy !== 'newest' 
-                        ? `${selectedTechnologies.length + (sortBy !== 'newest' ? 1 : 0)}件適用中` 
-                        : 'タップして開く'
-                      }
-                    </div>
-                  </div>
-                </div>
-                <motion.div
-                  animate={{ x: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <ChevronUp className="h-5 w-5 -rotate-90" />
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* フィルターコンテンツ（展開時の表示） */}
-          <AnimatePresence>
-            {!isSidebarMinimized && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="p-6"
-              >
-                {/* ヘッダー */}
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                      <Filter className="h-4 w-4" />
-                    </div>
-                    <h3 className="text-lg font-bold">フィルター</h3>
-                  </div>
-                  <motion.button
-                    onClick={() => setIsSidebarMinimized(true)}
-                    className="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center justify-center transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <ChevronUp className="h-4 w-4 rotate-90" />
-                  </motion.button>
-                </div>
-
-                <div className="space-y-6">
-                  {/* 技術スタックフィルター */}
-                  <Collapsible open={isTechFilterOpen} onOpenChange={setIsTechFilterOpen}>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors group">
-                      <div className="flex items-center gap-3">
-                        <motion.div
-                          whileHover={{ rotate: 5 }}
-                          transition={{ duration: 0.2 }}
-                          className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center"
-                        >
-                          <Code className="h-3 w-3" />
-                        </motion.div>
-                        <span className="text-sm font-medium">技術スタック</span>
-                        <AnimatePresence>
-                          {selectedTechnologies.length > 0 && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              transition={{ duration: 0.2 }}
-                              className="px-2 py-1 bg-blue-500 text-white rounded-full text-xs font-medium"
-                            >
-                              {selectedTechnologies.length}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                      <motion.div
-                        animate={{ rotate: isTechFilterOpen ? 180 : 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </motion.div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-3">
-                      <motion.div
-                        initial={false}
-                        animate={{ 
-                          opacity: isTechFilterOpen ? 1 : 0,
-                          y: isTechFilterOpen ? 0 : -10
-                        }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="space-y-2 max-h-48 overflow-y-auto"
-                      >
-                        {allTechnologies.map((tech, index) => (
-                          <motion.div 
-                            key={tech} 
-                            className="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded-lg transition-colors"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.2, delay: index * 0.03 }}
-                          >
-                            <Checkbox
-                              id={tech}
-                              checked={selectedTechnologies.includes(tech)}
-                              onCheckedChange={(checked: boolean | 'indeterminate') => 
-                                handleTechnologyChange(tech, checked)
-                              }
-                              className="border-slate-400 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                            />
-                            <Label htmlFor={tech} className="text-sm cursor-pointer text-slate-200 hover:text-white transition-colors">
-                              {tech}
-                            </Label>
-                          </motion.div>
-                        ))}
-                      </motion.div>
-                    </CollapsibleContent>
-                  </Collapsible>
-
-                  {/* 並び順フィルター */}
-                  <Collapsible open={isSortFilterOpen} onOpenChange={setIsSortFilterOpen}>
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors group">
-                      <div className="flex items-center gap-3">
-                        <motion.div
-                          whileHover={{ rotate: 5 }}
-                          transition={{ duration: 0.2 }}
-                          className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center"
-                        >
-                          <ArrowRight className="h-3 w-3" />
-                        </motion.div>
-                        <span className="text-sm font-medium">並び順</span>
-                        <AnimatePresence>
-                          {sortBy !== 'newest' && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              transition={{ duration: 0.2 }}
-                              className="px-2 py-1 bg-orange-500 text-white rounded-full text-xs font-medium"
-                            >
-                              {sortBy === 'oldest' ? '古い順' : 
-                               sortBy === 'name' ? '名前順' : 
-                               sortBy === 'featured' ? '注目順' : ''}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                      <motion.div
-                        animate={{ rotate: isSortFilterOpen ? 180 : 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </motion.div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-3">
-                      <motion.div
-                        initial={false}
-                        animate={{ 
-                          opacity: isSortFilterOpen ? 1 : 0,
-                          y: isSortFilterOpen ? 0 : -10
-                        }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                      >
-                        <RadioGroup value={sortBy} onValueChange={(value) => setSortBy(value)}>
-                          {[
-                            { value: 'newest', label: '新しい順', icon: '🆕' },
-                            { value: 'oldest', label: '古い順', icon: '📅' },
-                            { value: 'name', label: '名前順', icon: '🔤' },
-                            { value: 'featured', label: '注目順', icon: '⭐' }
-                          ].map((option, index) => (
-                            <motion.div 
-                              key={option.value}
-                              className="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded-lg transition-colors"
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                            >
-                              <RadioGroupItem 
-                                value={option.value} 
-                                id={option.value}
-                                className="border-slate-400 text-blue-500"
-                              />
-                              <Label htmlFor={option.value} className="text-sm cursor-pointer text-slate-200 hover:text-white transition-colors flex items-center gap-2">
-                                <span>{option.icon}</span>
-                                {option.label}
-                              </Label>
-                            </motion.div>
-                          ))}
-                        </RadioGroup>
-                      </motion.div>
-                    </CollapsibleContent>
-                  </Collapsible>
-
-                  {/* フィルタークリア */}
-                  <motion.button
-                    onClick={clearFilters}
-                    className="w-full p-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl text-white font-medium transition-all duration-200"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    フィルターをクリア
-                  </motion.button>
-
-                  {/* 結果件数 */}
-                  <motion.div 
-                    className="text-center text-slate-300 text-sm"
-                    key={filteredAndSortedProjects.length}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
+                    className="h-full flex items-center justify-between px-4 cursor-pointer"
+                    onClick={() => setIsSidebarMinimized(false)}
                   >
-                    {filteredAndSortedProjects.length}件の実績
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center"
+                        whileHover={{ scale: 1.05, rotate: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Filter className="h-5 w-5" />
+                      </motion.div>
+                      <div>
+                        <div className="text-sm font-semibold">フィルター</div>
+                        <div className="text-xs text-slate-300">
+                          {selectedTechnologies.length > 0 || sortBy !== 'newest' 
+                            ? `${selectedTechnologies.length + (sortBy !== 'newest' ? 1 : 0)}件適用中` 
+                            : 'タップして開く'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <motion.div
+                      animate={{ x: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <ChevronUp className="h-5 w-5 -rotate-90" />
+                    </motion.div>
                   </motion.div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* フィルターコンテンツ（展開時の表示） */}
+              <AnimatePresence>
+                {!isSidebarMinimized && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                    className="p-6"
+                  >
+                    {/* ヘッダー */}
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                          <Filter className="h-4 w-4" />
+                        </div>
+                        <h3 className="text-lg font-bold">フィルター</h3>
+                      </div>
+                      <motion.button
+                        onClick={() => setIsSidebarMinimized(true)}
+                        className="w-8 h-8 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center justify-center transition-colors"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <ChevronUp className="h-4 w-4 rotate-90" />
+                      </motion.button>
+                    </div>
+
+                    <div className="space-y-6">
+                      {/* 技術スタックフィルター */}
+                      <Collapsible open={isTechFilterOpen} onOpenChange={setIsTechFilterOpen}>
+                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors group">
+                          <div className="flex items-center gap-3">
+                            <motion.div
+                              whileHover={{ rotate: 5 }}
+                              transition={{ duration: 0.2 }}
+                              className="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center"
+                            >
+                              <Code className="h-3 w-3" />
+                            </motion.div>
+                            <span className="text-sm font-medium">技術スタック</span>
+                            <AnimatePresence>
+                              {selectedTechnologies.length > 0 && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="px-2 py-1 bg-blue-500 text-white rounded-full text-xs font-medium"
+                                >
+                                  {selectedTechnologies.length}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                          <motion.div
+                            animate={{ rotate: isTechFilterOpen ? 180 : 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-3">
+                          <motion.div
+                            initial={false}
+                            animate={{ 
+                              opacity: isTechFilterOpen ? 1 : 0,
+                              y: isTechFilterOpen ? 0 : -10
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                            className="space-y-2 max-h-48 overflow-y-auto"
+                          >
+                            {allTechnologies.map((tech, index) => (
+                              <motion.div 
+                                key={tech} 
+                                className="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.2, delay: index * 0.03 }}
+                              >
+                                <Checkbox
+                                  id={tech}
+                                  checked={selectedTechnologies.includes(tech)}
+                                  onCheckedChange={(checked: boolean | 'indeterminate') => 
+                                    handleTechnologyChange(tech, checked)
+                                  }
+                                  className="border-slate-400 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                                />
+                                <Label htmlFor={tech} className="text-sm cursor-pointer text-slate-200 hover:text-white transition-colors">
+                                  {tech}
+                                </Label>
+                              </motion.div>
+                            ))}
+                          </motion.div>
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      {/* 並び順フィルター */}
+                      <Collapsible open={isSortFilterOpen} onOpenChange={setIsSortFilterOpen}>
+                        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors group">
+                          <div className="flex items-center gap-3">
+                            <motion.div
+                              whileHover={{ rotate: 5 }}
+                              transition={{ duration: 0.2 }}
+                              className="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center"
+                            >
+                              <ArrowRight className="h-3 w-3" />
+                            </motion.div>
+                            <span className="text-sm font-medium">並び順</span>
+                            <AnimatePresence>
+                              {sortBy !== 'newest' && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="px-2 py-1 bg-orange-500 text-white rounded-full text-xs font-medium"
+                                >
+                                  {sortBy === 'oldest' ? '古い順' : 
+                                   sortBy === 'name' ? '名前順' : 
+                                   sortBy === 'featured' ? '注目順' : ''}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                          <motion.div
+                            animate={{ rotate: isSortFilterOpen ? 180 : 0 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="mt-3">
+                          <motion.div
+                            initial={false}
+                            animate={{ 
+                              opacity: isSortFilterOpen ? 1 : 0,
+                              y: isSortFilterOpen ? 0 : -10
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                          >
+                            <RadioGroup value={sortBy} onValueChange={(value) => setSortBy(value)}>
+                              {[
+                                { value: 'newest', label: '新しい順', icon: '🆕' },
+                                { value: 'oldest', label: '古い順', icon: '📅' },
+                                { value: 'name', label: '名前順', icon: '🔤' },
+                                { value: 'featured', label: '注目順', icon: '⭐' }
+                              ].map((option, index) => (
+                                <motion.div 
+                                  key={option.value}
+                                  className="flex items-center space-x-3 p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ duration: 0.2, delay: index * 0.05 }}
+                                >
+                                  <RadioGroupItem 
+                                    value={option.value} 
+                                    id={option.value}
+                                    className="border-slate-400 text-blue-500"
+                                  />
+                                  <Label htmlFor={option.value} className="text-sm cursor-pointer text-slate-200 hover:text-white transition-colors flex items-center gap-2">
+                                    <span>{option.icon}</span>
+                                    {option.label}
+                                  </Label>
+                                </motion.div>
+                              ))}
+                            </RadioGroup>
+                          </motion.div>
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      {/* フィルタークリア */}
+                      <motion.button
+                        onClick={clearFilters}
+                        className="w-full p-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl text-white font-medium transition-all duration-200"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        フィルターをクリア
+                      </motion.button>
+
+                      {/* 結果件数 */}
+                      <motion.div 
+                        className="text-center text-slate-300 text-sm"
+                        key={filteredAndSortedProjects.length}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {filteredAndSortedProjects.length}件の実績
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* プロジェクト一覧セクション */}
       <section id="projects-section" className="py-20 px-4">
@@ -701,11 +777,7 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
               transition={{ duration: 0.3 }}
             >
                 {isLoading ? (
-                  <div className={`grid gap-6 transition-all duration-500 ease-in-out ${
-                    isSidebarMinimized 
-                      ? 'grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3' 
-                      : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
-                  }`}>
+                  <div className="grid gap-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, index) => (
                       <ProjectSkeleton key={index} />
                     ))}
@@ -715,7 +787,7 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                     条件に一致する実績がありません
                   </div>
                 ) : (
-                  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  <div id="projects-grid" className="grid gap-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3">
                     <AnimatePresence mode="popLayout">
                       {filteredAndSortedProjects.map((project: Project) => (
                         <motion.div 
@@ -732,34 +804,34 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                         <Card className="h-full hover:shadow-lg transition-all duration-200">
                           {project.image_url && (
                             <Link href={`/projects/detail/${project.id}`}>
-                              <div className="relative w-full h-48 rounded-t-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+                              <div className="relative w-full h-64 rounded-t-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
                                 <Image src={project.image_url} alt={project.title} fill className="object-cover" />
                               </div>
                             </Link>
                           )}
-                          <CardHeader className="p-4 pb-3">
+                          <CardHeader className="p-6 pb-4">
                             <div className="flex items-start justify-between">
-                              <CardTitle className="text-base sm:text-lg line-clamp-2">
+                              <CardTitle className="text-lg sm:text-xl line-clamp-2">
                                 {project.title}
                               </CardTitle>
                               {project.is_featured && (
-                                <Badge variant="secondary" className="ml-2 text-xs">
-                                  <Star className="h-3 w-3 mr-1" />
+                                <Badge variant="secondary" className="ml-2 text-sm">
+                                  <Star className="h-4 w-4 mr-1" />
                                   注目
                                 </Badge>
                               )}
                             </div>
-                            <CardDescription className="line-clamp-2 text-sm">
+                            <CardDescription className="line-clamp-3 text-base mt-2">
                               {project.description}
                             </CardDescription>
                           </CardHeader>
-                          <CardContent className="p-4 pt-0">
-                            <div className="flex flex-wrap gap-1 mb-4">
+                          <CardContent className="p-6 pt-0">
+                            <div className="flex flex-wrap gap-2 mb-6">
                               {project.technologies.slice(0, 6).map((tech: string) => (
                                 <Badge 
                                   key={tech} 
                                   variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
-                                  className="text-[10px] px-2 py-1 cursor-pointer"
+                                  className="text-xs px-3 py-1 cursor-pointer"
                                   onClick={() => {
                                     handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
                                   }}
@@ -768,26 +840,26 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                                 </Badge>
                               ))}
                               {project.technologies.length > 6 && (
-                                <Badge variant="outline" className="text-[10px] px-2 py-1">
+                                <Badge variant="outline" className="text-xs px-3 py-1">
                                   +{project.technologies.length - 6}
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-3">
                               <Link href={`/projects/detail/${project.id}`}>
-                                <Button variant="outline" size="sm" className="flex-1 text-sm">
+                                <Button variant="outline" size="default" className="flex-1">
                                   詳細を見る
                                 </Button>
                               </Link>
                               {project.project_url && (
-                                <Button variant="outline" size="sm" asChild>
+                                <Button variant="outline" size="default" asChild>
                                   <a href={project.project_url} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="h-4 w-4" />
                                   </a>
                                 </Button>
                               )}
                               {project.github_url && (
-                                <Button variant="outline" size="sm" asChild>
+                                <Button variant="outline" size="default" asChild>
                                   <a href={project.github_url} target="_blank" rel="noopener noreferrer">
                                     <Github className="h-4 w-4" />
                                   </a>

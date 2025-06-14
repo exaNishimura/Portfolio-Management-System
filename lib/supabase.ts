@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export type Database = {
   public: {
@@ -103,6 +104,14 @@ export async function createServerSupabaseClient() {
 // サーバーサイド用のSupabaseクライアント（使用時に作成）
 export async function getSupabaseClient() {
   return await createServerSupabaseClient();
+}
+
+// ビルド時用のSupabaseクライアント（cookiesを使用しない）
+export function createBuildTimeSupabaseClient() {
+  return createClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 }
 
 export async function getSession() {

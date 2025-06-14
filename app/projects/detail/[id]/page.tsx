@@ -1,73 +1,345 @@
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
+import { 
+  ArrowLeft, 
+  ExternalLink, 
+  Github, 
+  Calendar, 
+  Users, 
+  Code2,
+  Star,
+  Globe
+} from 'lucide-react';
+import { getSupabaseClient, createBuildTimeSupabaseClient } from '@/lib/supabase';
+import { Project } from '@/types';
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-export default async function ProjectDetailPage({ params }: Props) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const dummyProjects = [
-    {
-      id: '1',
-      title: 'Next.jsポートフォリオ',
-      category: 'Next.js',
-      project_year: 2024,
-      project_scale: 'medium',
-      description: 'Next.jsとSupabaseを使ったモダンなポートフォリオサイト。',
-      image_url: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: '2',
-      title: 'WordPressコーポレート',
-      category: 'WordPress',
-      project_year: 2023,
-      project_scale: 'large',
-      description: 'WordPressで構築した企業向けコーポレートサイト。',
-      image_url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80',
-    },
-    {
-      id: '3',
-      title: 'React管理画面',
-      category: 'React',
-      project_year: 2022,
-      project_scale: 'small',
-      description: 'Reactとshadcn/uiで作成した管理ダッシュボード。',
-      image_url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=600&q=80',
-    },
-  ];
-  const project = dummyProjects.find((p) => p.id === id);
+  
+  const supabase = createBuildTimeSupabaseClient();
+  const { data: project } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .single();
 
   if (!project) {
-    return <main className="p-8 text-center text-gray-500">案件が見つかりません</main>;
+    return {
+      title: 'プロジェクトが見つかりません',
+      description: 'お探しのプロジェクトは存在しません。',
+    };
   }
 
+  return {
+    title: `${project.title} | 実績詳細`,
+    description: project.description.slice(0, 160) + '...',
+    openGraph: {
+      title: project.title,
+      description: project.description.slice(0, 160) + '...',
+      images: project.image_url ? [
+        {
+          url: project.image_url,
+          width: 1200,
+          height: 800,
+          alt: project.title,
+        }
+      ] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: project.title,
+      description: project.description.slice(0, 160) + '...',
+      images: project.image_url ? [project.image_url] : [],
+    },
+  };
+}
+
+export default async function ProjectDetailPage({ params }: Props) {
+  const { id } = await params;
+  
+  // Supabaseからプロジェクト詳細を取得
+  const supabase = await getSupabaseClient();
+  const { data: project, error } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !project) {
+    console.error('Project not found:', error);
+    notFound();
+  }
+
+  // 関連プロジェクト（同じカテゴリの他のプロジェクト）を取得
+  const { data: relatedProjects } = await supabase
+    .from('projects')
+    .select('*')
+    .eq('category', project.category)
+    .neq('id', id)
+    .limit(3);
+
+  const projectScaleLabels = {
+    small: '小規模',
+    medium: '中規模', 
+    large: '大規模'
+  };
+
+  // 構造化データ
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "name": project.title,
+    "description": project.description,
+    "image": project.image_url,
+    "url": project.project_url,
+    "dateCreated": project.project_year.toString(),
+    "creator": {
+      "@type": "Person",
+      "name": "ポートフォリオ作成者"
+    },
+    "keywords": project.technologies?.join(', '),
+    "genre": project.category
+  };
+
   return (
-    <main className="p-8">
-      <Card className="p-6 max-w-xl mx-auto">
-        <div className="relative w-full h-56 mb-4 rounded overflow-hidden">
-          <Image
-            src={project.image_url}
-            alt={project.title}
-            fill
-            style={{ objectFit: 'cover' }}
-            sizes="(max-width: 768px) 100vw, 600px"
-            priority={true}
-          />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          {/* ナビゲーション */}
+          <div className="mb-8">
+            <Link href="/#projects-section">
+              <Button variant="ghost" className="mb-4">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                実績一覧に戻る
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* メインコンテンツ */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* プロジェクト画像 */}
+              <Card className="overflow-hidden">
+                <div className="relative w-full h-96 lg:h-[500px]">
+                  <Image
+                    src={project.image_url || '/placeholder-project.jpg'}
+                    alt={project.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
+                    priority={true}
+                  />
+                  {project.is_featured && (
+                    <div className="absolute top-4 left-4">
+                      <Badge variant="secondary" className="bg-yellow-500 text-white">
+                        <Star className="h-3 w-3 mr-1" />
+                        注目プロジェクト
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* プロジェクト詳細 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl lg:text-3xl">{project.title}</CardTitle>
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {project.technologies?.map((tech: string) => (
+                      <Badge key={tech} variant="outline" className="text-sm">
+                        {tech}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center">
+                      <Code2 className="h-5 w-5 mr-2" />
+                      プロジェクト概要
+                    </h3>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                      {project.description}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  {/* プロジェクト詳細情報 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">制作年</p>
+                          <p className="font-medium">{project.project_year}年</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">プロジェクト規模</p>
+                          <p className="font-medium">
+                            {projectScaleLabels[project.project_scale as keyof typeof projectScaleLabels] || project.project_scale}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-5 w-5 text-muted-foreground" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">カテゴリ</p>
+                          <p className="font-medium">{project.category}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* アクションボタン */}
+                  <div className="flex flex-wrap gap-4">
+                    {project.project_url && (
+                      <Button asChild className="flex-1 min-w-[200px]">
+                        <a href={project.project_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          サイトを見る
+                        </a>
+                      </Button>
+                    )}
+                    {project.github_url && (
+                      <Button variant="outline" asChild className="flex-1 min-w-[200px]">
+                        <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+                          <Github className="h-4 w-4 mr-2" />
+                          GitHubで見る
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* サイドバー */}
+            <div className="space-y-6">
+              {/* 技術スタック詳細 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">使用技術</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {project.technologies?.map((tech: string) => (
+                      <div key={tech} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                        <span className="font-medium">{tech}</span>
+                        <Badge variant="secondary" className="text-xs">
+                          技術
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* プロジェクト情報 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">プロジェクト情報</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">制作年</span>
+                    <span className="font-medium">{project.project_year}年</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">規模</span>
+                    <span className="font-medium">
+                      {projectScaleLabels[project.project_scale as keyof typeof projectScaleLabels] || project.project_scale}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">カテゴリ</span>
+                    <span className="font-medium">{project.category}</span>
+                  </div>
+                  {project.is_featured && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">ステータス</span>
+                      <Badge variant="secondary" className="bg-yellow-500 text-white">
+                        <Star className="h-3 w-3 mr-1" />
+                        注目
+                      </Badge>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 関連プロジェクト */}
+              {relatedProjects && relatedProjects.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">関連プロジェクト</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {relatedProjects.map((relatedProject: Project) => (
+                      <Link key={relatedProject.id} href={`/projects/detail/${relatedProject.id}`}>
+                        <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                          {relatedProject.image_url && (
+                            <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                              <Image
+                                src={relatedProject.image_url}
+                                alt={relatedProject.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm line-clamp-2">{relatedProject.title}</h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {relatedProject.project_year}年 • {relatedProject.category}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold mb-2">{project.title}</h1>
-        <div className="text-sm text-gray-500 mb-2">{project.category} / {project.project_year} / {project.project_scale}</div>
-        <p className="mb-4 whitespace-pre-line">{project.description}</p>
-        <a href="/projects" className="text-blue-600 underline text-sm">← 一覧に戻る</a>
-      </Card>
-    </main>
+      </main>
+    </>
   );
 }
 
 export async function generateStaticParams() {
-  return [
-    { id: '1' },
-    { id: '2' },
-    { id: '3' },
-  ];
+  const supabase = createBuildTimeSupabaseClient();
+  const { data: projects } = await supabase
+    .from('projects')
+    .select('id');
+
+  if (!projects) return [];
+
+  return projects.map((project) => ({
+    id: project.id,
+  }));
 } 
