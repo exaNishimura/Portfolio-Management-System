@@ -21,12 +21,12 @@ export default function Footer() {
             <h3 className="text-base font-semibold">連絡先</h3>
             <div className="flex justify-center space-x-6">
               <a
-                href="mailto:contact@example.com"
+                href="mailto:exasolcojp@gmail.com"
                 className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center space-x-2"
                 aria-label="メール"
               >
                 <Mail className="h-5 w-5" />
-                <span className="text-sm">contact@example.com</span>
+                <span className="text-sm">exasolcojp@gmail.com</span>
               </a>
               <a
                 href="https://github.com"
