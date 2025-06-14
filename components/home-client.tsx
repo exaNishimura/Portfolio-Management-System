@@ -418,7 +418,7 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                 ))}
               </div>
               <Link href="#projects-section">
-                <Button className="w-full">
+                <Button className="w-full mt-5">
                   全ての実績を見る
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
