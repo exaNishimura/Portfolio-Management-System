@@ -1,14 +1,17 @@
 import type { ReactNode } from "react";
-import { createClient } from "@/utils/supabase/server";
+import { checkAdminAccess } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminSidebar from "./admin-sidebar";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { isAdmin, user } = await checkAdminAccess();
   
-  if (!session) {
+  if (!user) {
     redirect("/auth/login");
+  }
+  
+  if (!isAdmin) {
+    redirect("/auth/access-denied");
   }
   
   return (
@@ -16,7 +19,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <AdminSidebar />
       <div className="flex-1 flex flex-col">
         <header className="w-full px-8 py-4 border-b border-gray-200 dark:border-neutral-800">
-          <h2 className="text-xl font-semibold">管理ダッシュボード</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">管理ダッシュボード</h2>
+            <div className="text-sm text-muted-foreground">
+              ログイン中: {user.email}
+            </div>
+          </div>
         </header>
         <main className="flex-1 p-8">{children}</main>
       </div>
