@@ -332,9 +332,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                           <SkillIcon skill={tech} size={16} />
                           <span className="font-medium">{tech}</span>
                         </div>
-                        <Badge variant="secondary" className="text-xs">
-                          技術
-                        </Badge>
                       </div>
                     ))}
                   </div>
