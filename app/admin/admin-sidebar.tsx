@@ -9,7 +9,8 @@ import {
   Tags, 
   User, 
   Settings,
-  LogOut
+  LogOut,
+  ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/utils/supabase/client';
@@ -34,6 +35,11 @@ const navigation = [
     name: 'カテゴリ管理',
     href: '/admin/categories',
     icon: Tags,
+  },
+  {
+    name: '画像管理',
+    href: '/admin/images',
+    icon: ImageIcon,
   },
   {
     name: 'サイト設定',

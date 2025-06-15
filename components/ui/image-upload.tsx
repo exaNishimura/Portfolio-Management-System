@@ -1,30 +1,49 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Upload, X, Loader2 } from 'lucide-react';
-import { uploadProfileImage, deleteProfileImage } from '@/lib/upload';
+import { Upload, X, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { uploadProfileImage, deleteProfileImage, testStoragePermissions } from '@/lib/upload';
 
 interface ImageUploadProps {
   value?: string;
   onChange: (url: string | undefined) => void;
   disabled?: boolean;
   className?: string;
+  onDeleteSuccess?: () => void; // 削除成功時のコールバック
+  updateDatabase?: boolean; // データベース更新フラグ
 }
 
-export function ImageUpload({ value, onChange, disabled, className }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, disabled, className, onDeleteSuccess, updateDatabase }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // valueが変更されたときの処理
+  useEffect(() => {
+    console.log('ImageUpload value changed:', value);
+    if (value && value.trim() !== '') {
+      setImageError(false);
+    }
+  }, [value]);
+
+  // 開発環境でストレージ権限をテスト
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      testStoragePermissions();
+    }
+  }, []);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
+    setImageError(false);
     
     try {
       const result = await uploadProfileImage(file);
@@ -48,23 +67,65 @@ export function ImageUpload({ value, onChange, disabled, className }: ImageUploa
   };
 
   const handleDelete = async () => {
-    if (!value) return;
+    if (!value) {
+      console.log('Delete cancelled: no value');
+      return;
+    }
 
+    console.log('Delete confirmation for URL:', value);
+    
+    if (!confirm('画像を削除しますか？この操作は取り消せません。')) {
+      console.log('Delete cancelled by user');
+      return;
+    }
+
+    console.log('Starting delete process...');
     setIsDeleting(true);
     
     try {
+      console.log('Calling deleteProfileImage with URL:', value);
       const success = await deleteProfileImage(value);
+      console.log('Delete result:', success);
       
       if (success) {
+        console.log('Delete successful, updating form...');
+        
+        // 画像キャッシュをクリア
+        clearImageCache(value);
+        
+        // フォーム状態を強制的にクリア
         onChange(undefined);
+        onChange(''); // 空文字列も設定
+        onChange(undefined); // 再度undefinedを設定
+        
+        // データベースも更新（オプション）
+        if (updateDatabase) {
+          console.log('Updating database...');
+          const dbUpdateSuccess = await updateProfileInDatabase();
+          if (!dbUpdateSuccess) {
+            console.warn('Database update failed, but storage deletion was successful');
+          }
+        }
+        
         toast.success('画像を削除しました');
+        setImageError(false);
+        
+        // 削除成功時のコールバックを実行
+        if (onDeleteSuccess) {
+          console.log('Calling onDeleteSuccess callback...');
+          setTimeout(() => {
+            onDeleteSuccess();
+          }, 100); // 少し遅延させて確実に実行
+        }
       } else {
+        console.log('Delete failed');
         toast.error('画像の削除に失敗しました');
       }
     } catch (error) {
       console.error('Delete error:', error);
       toast.error('削除中にエラーが発生しました');
     } finally {
+      console.log('Delete process completed');
       setIsDeleting(false);
     }
   };
@@ -73,80 +134,170 @@ export function ImageUpload({ value, onChange, disabled, className }: ImageUploa
     fileInputRef.current?.click();
   };
 
+  const handleImageError = () => {
+    console.error('Next.js Image component failed to load:', value);
+    setImageError(true);
+  };
+
+  const handleImageLoad = () => {
+    console.log('Next.js Image component loaded successfully:', value);
+    setImageError(false);
+  };
+
+  // 画像URLが有効かどうかをチェック
+  const hasValidImageUrl = value && value.trim() !== '';
+
+  const clearImageCache = (imageUrl: string) => {
+    try {
+      // Next.js Image コンポーネントのキャッシュをクリア
+      if (typeof window !== 'undefined') {
+        // ブラウザキャッシュから画像を削除
+        const img = document.createElement('img');
+        img.src = imageUrl + '?cache-bust=' + Date.now();
+        
+        // Service Worker のキャッシュもクリア（存在する場合）
+        if ('serviceWorker' in navigator && 'caches' in window) {
+          caches.keys().then(cacheNames => {
+            cacheNames.forEach(cacheName => {
+              caches.open(cacheName).then(cache => {
+                cache.delete(imageUrl);
+              });
+            });
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Cache clear error:', error);
+    }
+  };
+
+  const updateProfileInDatabase = async () => {
+    try {
+      console.log('Updating profile in database to remove avatar_url...');
+      
+      const response = await fetch('/api/admin/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar_url: null // avatar_urlをnullに設定
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Database update failed:', errorData);
+        return false;
+      }
+
+      console.log('Database updated successfully');
+      return true;
+    } catch (error) {
+      console.error('Database update error:', error);
+      return false;
+    }
+  };
+
   return (
     <div className={className}>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/jpg,image/png,image/webp"
-        onChange={handleFileSelect}
-        className="hidden"
-        disabled={disabled || isUploading}
-      />
-      
-      {value ? (
-        <Card className="relative w-32 h-32 mx-auto">
-          <CardContent className="p-0">
-            <div className="relative w-full h-full rounded-lg overflow-hidden">
-              <Image
-                src={value}
-                alt="プロフィール画像"
-                fill
-                className="object-cover"
-                sizes="128px"
-              />
-              {!disabled && (
-                <div className="absolute top-2 right-2">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="h-6 w-6 p-0"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <X className="h-3 w-3" />
-                    )}
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+      <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleFileSelect} className="hidden" disabled={disabled || isUploading} />
+
+      {/* デバッグ情報 */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+          <p className="font-semibold">Debug Info:</p>
+          <p>Value: {value || "undefined"}</p>
+          <p>Value Length: {value ? value.length : 0}</p>
+          <p>Has Valid URL: {hasValidImageUrl ? "true" : "false"}</p>
+          <p>Image Error: {imageError ? "true" : "false"}</p>
+          <p>Is Deleting: {isDeleting ? "true" : "false"}</p>
+          <p>Card Classes: "relative w-48 h-48 mx-auto group"</p>
+          <p>CardContent Classes: "p-0 h-full"</p>
+          <p>Inner Div Classes: "relative w-full h-full rounded-lg overflow-hidden bg-muted"</p>
+          <p>Replace Button Classes: "h-8 w-8 p-0 bg-background/90 hover:bg-background border shadow-lg"</p>
+        </div>
+      )}
+
+      {hasValidImageUrl ? (
+        <div className="space-y-4">
+          {/* 画像プレビュー */}
+          <Card className="relative w-48 h-48 mx-auto group">
+            <CardContent className="p-0 h-full">
+              <div className="relative w-full h-full rounded-lg overflow-hidden bg-muted">
+                {imageError ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                    <div className="text-center">
+                      <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+                      <p className="text-xs text-destructive">読み込み失敗</p>
+                      <Button variant="outline" size="sm" onClick={handleUploadClick} className="mt-2">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        再選択
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Next.js Image with fill - primary approach */}
+                    <Image src={value} alt="プロフィール画像" fill className="object-cover" sizes="192px" onError={handleImageError} onLoad={handleImageLoad} priority />
+                    {/* Fallback: regular img tag with explicit dimensions */}
+                    {/* Uncomment if fill approach doesn't work:
+                    <img
+                      src={value}
+                      alt="プロフィール画像"
+                      className="w-full h-full object-cover"
+                      onError={handleImageError}
+                      onLoad={handleImageLoad}
+                    />
+                    */}
+                  </>
+                )}
+
+                {/* 画像上のオーバーレイボタン */}
+                {!disabled && !imageError && (
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    {/* 差し替えボタン */}
+                     <Button type="button" variant="secondary" size="sm" onClick={handleUploadClick} disabled={isUploading || isDeleting} className="h-8 w-8 p-0 bg-background/90 hover:bg-background border shadow-lg" title="画像を差し替え">
+                       {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                     </Button>
+                    {/* 削除ボタン */}
+                    <Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting || isUploading} className="h-8 w-8 p-0 shadow-lg" title="画像を削除">
+                      {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 画像情報 */}
+          <div className="text-center space-y-1">
+            <p className="text-sm text-muted-foreground">
+              {imageError ? "画像読み込みエラー" : "アップロード済み画像"}：
+              {value.split("/").pop()}
+            </p>
+          </div>
+        </div>
       ) : (
-        <Card className="w-32 h-32 mx-auto border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
+        <Card className="w-48 h-48 mx-auto border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
           <CardContent className="p-0 h-full">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={handleUploadClick}
-              disabled={disabled || isUploading}
-              className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-            >
+            <Button type="button" variant="ghost" onClick={handleUploadClick} disabled={disabled || isUploading} className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground">
               {isUploading ? (
                 <>
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="text-xs">アップロード中...</span>
+                  <Loader2 className="h-12 w-12 animate-spin" />
+                  <span className="text-sm">アップロード中...</span>
                 </>
               ) : (
                 <>
-                  <Upload className="h-8 w-8" />
-                  <span className="text-xs">画像を選択</span>
+                  <Upload className="h-12 w-12" />
+                  <span className="text-sm">画像を選択</span>
+                  <span className="text-xs text-muted-foreground">クリックしてファイルを選択</span>
                 </>
               )}
             </Button>
           </CardContent>
         </Card>
       )}
-      
-      <div className="mt-2 text-center">
-        <p className="text-xs text-muted-foreground">
-          JPEG、PNG、WebP形式（最大5MB）
-        </p>
-      </div>
     </div>
   );
 } 

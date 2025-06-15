@@ -13,7 +13,7 @@ const profileSchema = z.object({
   github_url: z.string().url('正しいURLを入力してください').optional(),
   linkedin_url: z.string().url('正しいURLを入力してください').optional(),
   twitter_url: z.string().url('正しいURLを入力してください').optional(),
-  avatar_url: z.string().url('正しいURLを入力してください').optional(),
+  avatar_url: z.string().url('正しいURLを入力してください').optional().nullable(),
   skills: z.array(z.string()).default([]),
   experience_years: z.number().min(0).optional(),
 });

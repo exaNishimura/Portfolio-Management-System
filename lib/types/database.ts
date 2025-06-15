@@ -88,7 +88,7 @@ export interface ProfileFormData {
   github_url?: string;
   linkedin_url?: string;
   twitter_url?: string;
-  avatar_url?: string;
+  avatar_url?: string | null;
   skills: string[];
   experience_years?: number;
 }

@@ -70,47 +70,107 @@ export default function ProfileForm() {
   });
 
   // プロフィールデータを読み込み
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const response = await fetch('/api/admin/profile');
-        if (response.ok) {
-          const profileData = await response.json();
-          setProfile(profileData);
-          
-          // スキルデータの処理（text[]型に対応）
-          const profileSkills = Array.isArray(profileData.skills) 
-            ? profileData.skills 
-            : [];
-          setSkills(profileSkills);
-          
-          // フォームに初期値を設定
-          form.reset({
-            name: profileData.name || '',
-            title: profileData.title || '',
-            bio: profileData.bio || '',
-            image_url: profileData.avatar_url || '',
-            email: profileData.email || '',
-            github_url: profileData.github_url || '',
-            linkedin_url: profileData.linkedin_url || '',
-            website_url: profileData.website || '',
-            location: profileData.location || '',
-            experience_years: profileData.experience_years || 0,
-          });
-        } else if (response.status === 404) {
-          // プロフィールが存在しない場合は空のフォームを表示
-          console.log('プロフィールが見つかりません。新規作成モードです。');
-        }
-      } catch (error) {
-        console.error('プロフィール読み込みエラー:', error);
-        toast.error('プロフィールの読み込みに失敗しました');
-      } finally {
-        setIsLoadingData(false);
+  const loadProfile = async () => {
+    try {
+      console.log('Loading profile data...');
+      const response = await fetch('/api/admin/profile');
+      if (response.ok) {
+        const profileData = await response.json();
+        console.log('Profile data loaded:', profileData);
+        setProfile(profileData);
+        
+        // スキルデータの処理（text[]型に対応）
+        const profileSkills = Array.isArray(profileData.skills) 
+          ? profileData.skills 
+          : [];
+        setSkills(profileSkills);
+        
+        // フォームに初期値を設定
+        const formData = {
+          name: profileData.name || '',
+          title: profileData.title || '',
+          bio: profileData.bio || '',
+          image_url: profileData.avatar_url || '',
+          email: profileData.email || '',
+          github_url: profileData.github_url || '',
+          linkedin_url: profileData.linkedin_url || '',
+          website_url: profileData.website || '',
+          location: profileData.location || '',
+          experience_years: profileData.experience_years || 0,
+        };
+        
+        console.log('Setting form data:', formData);
+        console.log('Image URL being set:', formData.image_url);
+        
+        form.reset(formData);
+        
+        // 画像URLが設定されているか確認
+        setTimeout(() => {
+          const currentImageUrl = form.getValues('image_url');
+          console.log('Current form image_url value:', currentImageUrl);
+        }, 100);
+        
+      } else if (response.status === 404) {
+        // プロフィールが存在しない場合は空のフォームを表示
+        console.log('プロフィールが見つかりません。新規作成モードです。');
       }
-    };
+    } catch (error) {
+      console.error('プロフィール読み込みエラー:', error);
+      toast.error('プロフィールの読み込みに失敗しました');
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
 
+  useEffect(() => {
     loadProfile();
   }, [form]);
+
+  // 画像削除後の再読み込み処理
+  const handleImageDeleteSuccess = async () => {
+    console.log('Image deleted successfully, saving profile to update database...');
+    
+    // フォームの現在の値を取得
+    const currentValues = form.getValues();
+    
+    // avatar_urlをnullに設定してフォームを保存
+    const profileData = {
+      name: currentValues.name,
+      title: currentValues.title || undefined,
+      bio: currentValues.bio || undefined,
+      avatar_url: null, // 明示的にnullを設定
+      email: currentValues.email || undefined,
+      github_url: currentValues.github_url || undefined,
+      linkedin_url: currentValues.linkedin_url || undefined,
+      website: currentValues.website_url || undefined,
+      location: currentValues.location || undefined,
+      skills: skills,
+      experience_years: currentValues.experience_years || undefined,
+    };
+
+    try {
+      const response = await fetch('/api/admin/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      if (response.ok) {
+        console.log('Profile updated in database successfully');
+        // プロフィールを再読み込み
+        setIsLoadingData(true);
+        await loadProfile();
+      } else {
+        console.error('Failed to update profile in database');
+        toast.error('データベースの更新に失敗しました');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('データベースの更新中にエラーが発生しました');
+    }
+  };
 
   const onSubmit = async (data: ProfileFormData) => {
     setIsLoading(true);
@@ -182,9 +242,7 @@ export default function ProfileForm() {
           <User className="h-5 w-5" />
           プロフィール情報
         </CardTitle>
-        <CardDescription>
-          サイトに表示されるプロフィール情報を編集できます。
-        </CardDescription>
+        <CardDescription>サイトに表示されるプロフィール情報を編集できます。</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoadingData ? (
@@ -212,7 +270,7 @@ export default function ProfileForm() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="title"
@@ -236,15 +294,9 @@ export default function ProfileForm() {
                   <FormItem>
                     <FormLabel>自己紹介文</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="自己紹介文を入力してください"
-                        className="min-h-[120px]"
-                        {...field} 
-                      />
+                      <Textarea placeholder="自己紹介文を入力してください" className="min-h-[120px]" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      サイトのトップページに表示される自己紹介文です。
-                    </FormDescription>
+                    <FormDescription>サイトのトップページに表示される自己紹介文です。</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -257,16 +309,25 @@ export default function ProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>プロフィール画像</FormLabel>
+                    <FormDescription>
+                      {field.value && field.value.trim() !== "" ? (
+                        <>
+                          現在のプロフィール画像です。画像にマウスを重ねると差し替え・削除ボタンが表示されます。
+                          <br />
+                          対応形式: JPEG、PNG、WebP（最大5MB）
+                        </>
+                      ) : (
+                        "プロフィール画像をアップロードしてください。JPEG、PNG、WebP形式（最大5MB）"
+                      )}
+                    </FormDescription>
                     <FormControl>
-                      <ImageUpload
-                        value={field.value}
-                        onChange={(value) => field.onChange(value)}
+                      <ImageUpload 
+                        value={field.value} 
+                        onChange={(value) => field.onChange(value)} 
                         disabled={isLoading}
+                        onDeleteSuccess={handleImageDeleteSuccess}
                       />
                     </FormControl>
-                    <FormDescription>
-                      プロフィール画像をアップロードしてください。JPEG、PNG、WebP形式（最大5MB）
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -287,7 +348,7 @@ export default function ProfileForm() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="location"
@@ -318,7 +379,7 @@ export default function ProfileForm() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="linkedin_url"
@@ -356,16 +417,9 @@ export default function ProfileForm() {
                   <FormItem>
                     <FormLabel>経験年数</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="5"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
+                      <Input type="number" placeholder="5" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
                     </FormControl>
-                    <FormDescription>
-                      Web開発の経験年数を入力してください。
-                    </FormDescription>
+                    <FormDescription>Web開発の経験年数を入力してください。</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -375,32 +429,21 @@ export default function ProfileForm() {
               <div className="space-y-4">
                 <div>
                   <FormLabel>スキル</FormLabel>
-                  <FormDescription>
-                    保有しているスキルを追加してください。
-                  </FormDescription>
+                  <FormDescription>保有しているスキルを追加してください。</FormDescription>
                 </div>
-                
+
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="スキルを入力"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                  />
+                  <Input placeholder="スキルを入力" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())} />
                   <Button type="button" onClick={addSkill} variant="outline">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill) => (
                     <Badge key={skill} variant="secondary" className="flex items-center gap-1">
                       {skill}
-                      <button
-                        type="button"
-                        onClick={() => removeSkill(skill)}
-                        className="ml-1 hover:text-destructive"
-                      >
+                      <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-destructive">
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
@@ -410,7 +453,7 @@ export default function ProfileForm() {
 
               <div className="flex justify-end">
                 <Button type="submit" disabled={isLoading}>
-                  {isLoading ? '更新中...' : 'プロフィールを更新'}
+                  {isLoading ? "更新中..." : "プロフィールを更新"}
                 </Button>
               </div>
             </form>

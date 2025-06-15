@@ -82,24 +82,124 @@ export async function uploadProfileImage(file: File): Promise<UploadResult> {
 
 export async function deleteProfileImage(url: string): Promise<boolean> {
   try {
+    console.log('Starting delete process for URL:', url);
+    
     const supabase = createClient();
     
-    // URLからファイルパスを抽出
-    const urlParts = url.split('/');
-    const fileName = urlParts[urlParts.length - 1];
+    // URLからファイルパスを抽出（より堅牢な方法）
+    let fileName: string;
     
+    if (url.includes('/storage/v1/object/public/profile-images/')) {
+      // Supabase公開URLの場合
+      const urlParts = url.split('/storage/v1/object/public/profile-images/');
+      fileName = urlParts[1];
+      
+      // クエリパラメータを除去
+      if (fileName.includes('?')) {
+        fileName = fileName.split('?')[0];
+      }
+    } else {
+      // フォールバック：最後のスラッシュ以降をファイル名とする
+      const urlParts = url.split('/');
+      fileName = urlParts[urlParts.length - 1];
+      
+      // クエリパラメータを除去
+      if (fileName.includes('?')) {
+        fileName = fileName.split('?')[0];
+      }
+    }
+    
+    console.log('Extracted filename:', fileName);
+    
+    if (!fileName || fileName.trim() === '') {
+      console.error('Failed to extract filename from URL:', url);
+      return false;
+    }
+    
+    console.log('Attempting to delete file from storage:', fileName);
+    
+    // 最初の削除試行
     const { error } = await supabase.storage
       .from('profile-images')
       .remove([fileName]);
 
     if (error) {
-      console.error('Delete error:', error);
-      return false;
+      console.error('Supabase delete error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name
+      });
+      
+      // 代替方法：パスを明示的に指定して再試行
+      console.log('Trying alternative delete method...');
+      const { error: altError } = await supabase.storage
+        .from('profile-images')
+        .remove([`/${fileName}`]);
+      
+      if (altError) {
+        console.error('Alternative delete also failed:', altError);
+        
+        // さらなる代替方法：ファイル存在確認後削除
+        console.log('Checking if file exists before delete...');
+        const { data: fileList, error: listError } = await supabase.storage
+          .from('profile-images')
+          .list('', { search: fileName });
+        
+        if (listError) {
+          console.error('File list error:', listError);
+          return false;
+        }
+        
+        console.log('Files found:', fileList);
+        const fileExists = fileList?.some(file => file.name === fileName);
+        
+        if (!fileExists) {
+          console.log('File does not exist in storage, considering as successful deletion');
+          return true;
+        }
+        
+        return false;
+      } else {
+        console.log('Alternative delete method succeeded');
+        return true;
+      }
     }
 
+    console.log('File deleted successfully:', fileName);
     return true;
   } catch (error) {
     console.error('Delete error:', error);
     return false;
+  }
+}
+
+export async function testStoragePermissions(): Promise<void> {
+  try {
+    const supabase = createClient();
+    
+    console.log('Testing storage permissions...');
+    
+    // ストレージバケットの情報を取得
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+    
+    if (bucketsError) {
+      console.error('Failed to list buckets:', bucketsError);
+    } else {
+      console.log('Available buckets:', buckets);
+    }
+    
+    // profile-imagesバケットのファイル一覧を取得
+    const { data: files, error: filesError } = await supabase.storage
+      .from('profile-images')
+      .list('', { limit: 5 });
+    
+    if (filesError) {
+      console.error('Failed to list files in profile-images:', filesError);
+    } else {
+      console.log('Files in profile-images bucket:', files);
+    }
+    
+  } catch (error) {
+    console.error('Storage permissions test error:', error);
   }
 } 
