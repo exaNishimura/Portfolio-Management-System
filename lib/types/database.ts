@@ -37,16 +37,7 @@ export interface Profile {
   updated_at: string | null;
 }
 
-// サイト設定型
-export interface SiteSetting {
-  id: string;
-  key: string;
-  value: string | null;
-  description: string | null;
-  type: 'text' | 'number' | 'boolean' | 'json';
-  created_at: string | null;
-  updated_at: string | null;
-}
+
 
 // フォーム用の型
 export interface ProjectFormData {
@@ -80,9 +71,4 @@ export interface ProfileFormData {
   experience_years?: number | null;
 }
 
-export interface SiteSettingFormData {
-  key: string;
-  value?: string;
-  description?: string;
-  type: 'text' | 'number' | 'boolean' | 'json';
-} 
+ 

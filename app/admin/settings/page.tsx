@@ -1,10 +1,22 @@
-import { getSettings } from '@/dal/settings';
-import SettingsForm from '@/components/admin/settings-form';
+import PortfolioSettingsForm from './settings-form';
+import { getSupabaseClient } from '@/lib/supabase';
+import { PortfolioSettings } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsManagePage() {
-  const settings = await getSettings();
+  const supabase = await getSupabaseClient();
+  
+  const { data: settings, error } = await supabase
+    .from('portfolio_settings')
+    .select('*')
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Portfolio settings error:', error);
+  }
+
+  const portfolioSettings: PortfolioSettings | null = settings || null;
 
   return (
     <main className="p-8">
@@ -16,7 +28,7 @@ export default async function SettingsManagePage() {
       </div>
 
       <div className="max-w-4xl">
-        <SettingsForm settings={settings} />
+        <PortfolioSettingsForm initialSettings={portfolioSettings} />
       </div>
     </main>
   );
