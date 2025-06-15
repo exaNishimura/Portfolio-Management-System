@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Briefcase, Tag, Settings } from 'lucide-react';
+import { User, Briefcase, Settings } from 'lucide-react';
 
 interface AdminLinkCard {
   title: string;
@@ -22,12 +22,7 @@ const adminLinks: AdminLinkCard[] = [
     href: '/admin/projects',
     icon: Briefcase,
   },
-  {
-    title: 'カテゴリ管理',
-    description: '案件カテゴリの管理・設定',
-    href: '/admin/categories',
-    icon: Tag,
-  },
+
   {
     title: 'サイト設定',
     description: 'サイト全体の設定・管理',

@@ -27,7 +27,7 @@ import {
   Code
 } from 'lucide-react';
 import { SkillIcon } from '@/lib/utils/skill-icons';
-import { Project, Category } from '@/types';
+import { Project } from '@/types';
 import { Profile } from '@/lib/types/database';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 
@@ -53,7 +53,6 @@ const dummyProfile: Profile = {
 
 interface HomeClientProps {
   featuredProjects: Project[];
-  categories: Category[];
   allProjects?: Project[];
   profile?: Profile;
   isLoading?: boolean;
@@ -129,7 +128,7 @@ const dummyProjects: Project[] = [
   }
 ];
 
-export function HomeClient({ featuredProjects, categories, allProjects = [], profile, isLoading = false }: HomeClientProps) {
+export function HomeClient({ featuredProjects, allProjects = [], profile, isLoading = false }: HomeClientProps) {
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
   const [isFilterSticky, setIsFilterSticky] = useState(false);

@@ -7,21 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, ExternalLink, Github, Star } from 'lucide-react';
-import { Project, Category } from '@/lib/types/database';
+import { Project } from '@/lib/types/database';
 import { toast } from 'sonner';
 
 interface ProjectsListProps {
   projects: Project[];
-  categories: Category[];
 }
 
-export default function ProjectsList({ projects, categories }: ProjectsListProps) {
+export default function ProjectsList({ projects }: ProjectsListProps) {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-
-  const getCategoryName = (categorySlug: string) => {
-    const category = categories.find(cat => cat.slug === categorySlug);
-    return category?.name || categorySlug;
-  };
 
   const handleDelete = async (projectId: string, projectTitle: string) => {
     if (!confirm(`「${projectTitle}」を削除してもよろしいですか？`)) {
@@ -90,7 +84,7 @@ export default function ProjectsList({ projects, categories }: ProjectsListProps
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary">
-                      {getCategoryName(project.category)}
+                      {project.category}
                     </Badge>
                   </TableCell>
                   <TableCell>

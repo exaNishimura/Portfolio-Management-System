@@ -15,15 +15,7 @@ export interface Project {
   project_scale: string | null;
 }
 
-// カテゴリ型
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  icon: string | null;
-  created_at: string | null;
-}
+
 
 // プロフィール型
 export interface Profile {
@@ -70,12 +62,7 @@ export interface ProjectFormData {
   project_scale?: string;
 }
 
-export interface CategoryFormData {
-  name: string;
-  slug: string;
-  description?: string;
-  icon?: string;
-}
+
 
 export interface ProfileFormData {
   name: string;

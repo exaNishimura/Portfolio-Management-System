@@ -1,5 +1,4 @@
 import { getProjects } from '@/dal/projects';
-import { getCategories } from '@/dal/categories';
 import ProjectsList from '@/components/admin/projects-list';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -8,10 +7,7 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 export default async function ProjectsManagePage() {
-  const [projects, categories] = await Promise.all([
-    getProjects(),
-    getCategories()
-  ]);
+  const projects = await getProjects();
 
   return (
     <main className="p-8">
@@ -30,7 +26,7 @@ export default async function ProjectsManagePage() {
         </Link>
       </div>
 
-      <ProjectsList projects={projects} categories={categories} />
+      <ProjectsList projects={projects} />
     </main>
   );
 } 

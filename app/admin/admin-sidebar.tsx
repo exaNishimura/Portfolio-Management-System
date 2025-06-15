@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
   FolderOpen, 
-  Tags, 
   User, 
   Settings,
   LogOut,
@@ -31,11 +30,7 @@ const navigation = [
     href: '/admin/projects',
     icon: FolderOpen,
   },
-  {
-    name: 'カテゴリ管理',
-    href: '/admin/categories',
-    icon: Tags,
-  },
+
   {
     name: '画像管理',
     href: '/admin/images',
