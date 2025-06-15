@@ -471,10 +471,10 @@ export function HomeClient({ featuredProjects, allProjects = [], profile, isLoad
                   <Card key={project.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-start space-x-4">
-                        {project.image_url && (
+                        {((project.images && project.images.length > 0) || project.image_url) && (
                           <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                             <Image 
-                              src={project.image_url} 
+                              src={(project.images && project.images.length > 0) ? project.images[0] : project.image_url!} 
                               alt={project.title}
                               fill
                               className="object-cover"
@@ -824,10 +824,15 @@ export function HomeClient({ featuredProjects, allProjects = [], profile, isLoad
                           }}
                         >
                         <Card className="h-full hover:shadow-lg transition-all duration-200">
-                          {project.image_url && (
+                          {((project.images && project.images.length > 0) || project.image_url) && (
                             <Link href={`/projects/detail/${project.id}`}>
                               <div className="relative w-full h-64 rounded-t-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
-                                <Image src={project.image_url} alt={project.title} fill className="object-cover" />
+                                <Image 
+                                  src={(project.images && project.images.length > 0) ? project.images[0] : project.image_url!} 
+                                  alt={project.title} 
+                                  fill 
+                                  className="object-cover" 
+                                />
                               </div>
                             </Link>
                           )}

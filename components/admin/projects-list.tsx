@@ -138,7 +138,7 @@ export default function ProjectsList({ projects }: ProjectsListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Link href={`/admin/projects/${project.id}/edit`}>
+                      <Link href={`/admin/projects/${project.id}`}>
                         <Button size="sm" variant="outline">
                           <Edit className="h-4 w-4" />
                         </Button>

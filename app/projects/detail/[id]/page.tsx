@@ -136,24 +136,53 @@ export default async function ProjectDetailPage({ params }: Props) {
             <div className="lg:col-span-2 space-y-8">
               {/* プロジェクト画像 */}
               <Card className="overflow-hidden">
-                <div className="relative w-full h-96 lg:h-[500px]">
-                  <Image
-                    src={project.image_url || '/placeholder-project.jpg'}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
-                    priority={true}
-                  />
-                  {project.is_featured && (
-                    <div className="absolute top-4 left-4">
-                      <Badge variant="secondary" className="bg-yellow-500 text-white">
-                        <Star className="h-3 w-3 mr-1" />
-                        注目プロジェクト
-                      </Badge>
+                {((project.images && project.images.length > 0) || project.image_url) ? (
+                  <div className="space-y-4">
+                    {/* メイン画像 */}
+                    <div className="relative w-full h-96 lg:h-[500px]">
+                      <Image
+                        src={(project.images && project.images.length > 0) ? project.images[0] : project.image_url!}
+                        alt={project.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
+                        priority={true}
+                      />
+                      {project.is_featured && (
+                        <div className="absolute top-4 left-4">
+                          <Badge variant="secondary" className="bg-yellow-500 text-white">
+                            <Star className="h-3 w-3 mr-1" />
+                            注目プロジェクト
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                    
+                    {/* 追加画像のサムネイル */}
+                    {project.images && project.images.length > 1 && (
+                      <div className="p-4">
+                        <h4 className="text-sm font-medium mb-3">その他の画像</h4>
+                        <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                          {project.images.slice(1).map((imageUrl: string, index: number) => (
+                            <div key={index} className="relative aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+                              <Image
+                                src={imageUrl}
+                                alt={`${project.title} - 画像 ${index + 2}`}
+                                fill
+                                className="object-cover"
+                                sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 200px"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="relative w-full h-96 lg:h-[500px] bg-muted flex items-center justify-center">
+                    <p className="text-muted-foreground">画像がありません</p>
+                  </div>
+                )}
               </Card>
 
               {/* プロジェクト詳細 */}
@@ -306,10 +335,10 @@ export default async function ProjectDetailPage({ params }: Props) {
                     {relatedProjects.map((relatedProject: Project) => (
                       <Link key={relatedProject.id} href={`/projects/detail/${relatedProject.id}`}>
                         <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-                          {relatedProject.image_url && (
+                          {((relatedProject.images && relatedProject.images.length > 0) || relatedProject.image_url) && (
                             <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
                               <Image
-                                src={relatedProject.image_url}
+                                src={(relatedProject.images && relatedProject.images.length > 0) ? relatedProject.images[0] : relatedProject.image_url!}
                                 alt={relatedProject.title}
                                 fill
                                 className="object-cover"

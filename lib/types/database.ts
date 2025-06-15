@@ -3,7 +3,9 @@ export interface Project {
   id: string;
   title: string;
   description: string | null;
-  image_url: string | null;
+  image_url: string | null; // 後方互換性のため残す
+  images: string[]; // 新しい複数画像フィールド
+  image_paths?: string[]; // Supabaseストレージのパス情報（削除用）
   project_url: string | null;
   github_url: string | null;
   technologies: string[];
@@ -42,10 +44,12 @@ export interface Profile {
 // フォーム用の型
 export interface ProjectFormData {
   title: string;
-  description?: string;
-  image_url?: string;
-  project_url?: string;
-  github_url?: string;
+  description?: string | null;
+  image_url?: string | null; // 後方互換性のため残す
+  images?: string[]; // 新しい複数画像フィールド
+  image_paths?: string[]; // Supabaseストレージのパス情報（削除用）
+  project_url?: string | null;
+  github_url?: string | null;
   technologies: string[];
   category: string;
   is_featured?: boolean;
