@@ -8,8 +8,7 @@ import {
   FolderOpen, 
   User, 
   Settings,
-  LogOut,
-  ImageIcon
+  LogOut
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/utils/supabase/client';
@@ -29,12 +28,6 @@ const navigation = [
     name: '案件管理',
     href: '/admin/projects',
     icon: FolderOpen,
-  },
-
-  {
-    name: '画像管理',
-    href: '/admin/images',
-    icon: ImageIcon,
   },
   {
     name: 'サイト設定',

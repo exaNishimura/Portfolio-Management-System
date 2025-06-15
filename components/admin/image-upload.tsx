@@ -23,6 +23,7 @@ export default function ImageUpload({
   className 
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (images.length + acceptedFiles.length > maxImages) {
@@ -72,7 +73,7 @@ export default function ImageUpload({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.avif', '.tiff', '.bmp']
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.avif', '.tiff', '.bmp', '.heif', '.heic']
     },
     multiple: true,
     disabled: isUploading || images.length >= maxImages
@@ -81,8 +82,16 @@ export default function ImageUpload({
   const removeImage = async (indexToRemove: number) => {
     const imageToRemove = images[indexToRemove];
     
-    // Supabaseストレージから画像を削除
+    if (!confirm('画像を削除しますか？この操作は取り消せません。')) {
+      return;
+    }
+    
+    setDeletingIndex(indexToRemove);
+    
+    // API経由で削除処理を実行（sharpライブラリの使用を避ける）
     try {
+      console.log('削除開始:', { indexToRemove, imageToRemove });
+      
       const response = await fetch('/api/admin/upload/delete', {
         method: 'DELETE',
         headers: {
@@ -91,18 +100,31 @@ export default function ImageUpload({
         body: JSON.stringify({ imageUrl: imageToRemove }),
       });
 
+      console.log('削除API レスポンス:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('削除API エラーレスポンス:', errorData);
         throw new Error(errorData.error || '画像の削除に失敗しました');
       }
 
-      // 成功した場合、ローカルの状態からも削除
+      const responseData = await response.json();
+      console.log('削除API 成功レスポンス:', responseData);
+
+      // API成功時のみローカルの状態から削除
       const newImages = images.filter((_, index) => index !== indexToRemove);
       onImagesChange(newImages);
       toast.success('画像を削除しました');
     } catch (error) {
       console.error('画像削除エラー:', error);
       toast.error(error instanceof Error ? error.message : '画像の削除に失敗しました');
+      // エラーの場合はローカル状態を変更しない
+    } finally {
+      setDeletingIndex(null);
     }
   };
 
@@ -134,8 +156,13 @@ export default function ImageUpload({
                       variant="destructive"
                       className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => removeImage(index)}
+                      disabled={deletingIndex === index}
                     >
-                      <X className="h-3 w-3" />
+                      {deletingIndex === index ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <X className="h-3 w-3" />
+                      )}
                     </Button>
                   </div>
                   <Badge variant="secondary" className="mt-1 text-xs">
@@ -190,7 +217,7 @@ export default function ImageUpload({
 
                 {!isUploading && (
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p>対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP</p>
+                    <p>対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP, HEIF, HEIC</p>
                     <p>最大ファイルサイズ: 10MB（自動的にAVIFに変換されます）</p>
                     <p>最大{maxImages}枚まで選択可能 (残り{maxImages - images.length}枚)</p>
                   </div>

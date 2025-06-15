@@ -1,6 +1,120 @@
-import AdminLinkCards from '@/components/admin/admin-link-cards';
+import { Suspense } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import DashboardStatsComponent from '@/components/admin/dashboard-stats';
+import ActivityLogComponent from '@/components/admin/activity-log';
+import { getDashboardStats, getRecentActivity } from '@/dal/dashboard';
+import { BarChart3, TrendingUp } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+// ローディングコンポーネント
+function StatsLoading() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="h-12 w-12 rounded-full" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function ActivityLoading() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>最近の活動</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-start space-x-3 p-3">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+                <Skeleton className="h-3 w-48" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// データ取得コンポーネント
+async function DashboardContent() {
+  const [stats, activities] = await Promise.all([
+    getDashboardStats(),
+    getRecentActivity()
+  ]);
+
+  return (
+    <>
+      {/* 統計情報セクション */}
+      <div className="mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 className="h-6 w-6" />
+          <h2 className="text-xl font-semibold">サイト概要</h2>
+        </div>
+        <DashboardStatsComponent stats={stats} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 活動ログ */}
+        <div className="lg:col-span-2">
+          <ActivityLogComponent activities={activities} />
+        </div>
+
+        {/* ポートフォリオ状況カード */}
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                ポートフォリオ状況
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">注目プロジェクト</span>
+                  <span className="text-sm font-medium">{stats.featuredProjects}件</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">最近の更新</span>
+                  <span className="text-sm font-medium">{stats.recentProjects}件</span>
+                </div>
+                <div className="pt-2 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    {stats.totalProjects > 0 
+                      ? 'ポートフォリオが構築されています' 
+                      : 'プロジェクトを追加してポートフォリオを構築しましょう'
+                    }
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function AdminDashboardPage() {
   return (
@@ -12,46 +126,44 @@ export default function AdminDashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* 左側エリア - 概要情報 */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4">サイト概要</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold text-primary">0</div>
-                <div className="text-sm text-muted-foreground">総案件数</div>
-              </div>
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold text-primary">0</div>
-                <div className="text-sm text-muted-foreground">カテゴリ数</div>
-              </div>
-              <div className="text-center p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold text-primary">0</div>
-                <div className="text-sm text-muted-foreground">お問い合わせ</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-card rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4">最近の活動</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2 border-b">
-                <span className="text-sm text-muted-foreground">システムが正常に動作しています</span>
-                <span className="text-xs text-muted-foreground">今</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 右側エリア - 管理機能リンク */}
-        <div className="space-y-6">
+      <Suspense fallback={
+        <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-semibold mb-4">管理機能</h2>
-            <AdminLinkCards />
+            <div className="flex items-center gap-2 mb-4">
+              <BarChart3 className="h-6 w-6" />
+              <h2 className="text-xl font-semibold">サイト概要</h2>
+            </div>
+            <StatsLoading />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <ActivityLoading />
+            </div>
+            <div>
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-8" />
+                      </div>
+                    ))}
+                    <div className="pt-2 border-t">
+                      <Skeleton className="h-3 w-48" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
-      </div>
+      }>
+        <DashboardContent />
+      </Suspense>
     </main>
   );
 } 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadMultipleImagesToSupabaseFixed as uploadMultipleImagesToSupabase, ensureBucketExists } from '@/lib/utils/supabase-storage-fixed';
+import { uploadMultipleImagesToSupabase, ensureBucketExists } from '@/lib/utils/supabase-storage';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,13 +13,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // バケットの存在確認・作成
-    await ensureBucketExists();
+    // バケットの存在確認・作成（エラーが発生しても処理を続行）
+    try {
+      await ensureBucketExists();
+    } catch (error) {
+      console.warn('バケット確認でエラーが発生しましたが、処理を続行します:', error);
+    }
 
     const uploadedFiles: string[] = [];
 
     for (const file of files) {
-      // ファイル形式の検証（AVIFを含む）
+      // ファイル形式の検証（HEIF/HEICを含む）
       const allowedTypes = [
         'image/jpeg',
         'image/jpg', 
@@ -28,12 +32,14 @@ export async function POST(request: NextRequest) {
         'image/webp',
         'image/avif',
         'image/tiff',
-        'image/bmp'
+        'image/bmp',
+        'image/heif',
+        'image/heic'
       ];
       
       if (!allowedTypes.includes(file.type.toLowerCase())) {
         return NextResponse.json(
-          { error: `${file.name} はサポートされていない画像形式です。対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP` },
+          { error: `${file.name} はサポートされていない画像形式です。対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP, HEIF, HEIC` },
           { status: 400 }
         );
       }

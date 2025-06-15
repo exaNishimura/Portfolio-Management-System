@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Briefcase, Settings } from 'lucide-react';
 
 interface AdminLinkCard {
   title: string;
@@ -10,28 +9,21 @@ interface AdminLinkCard {
 }
 
 const adminLinks: AdminLinkCard[] = [
-  {
-    title: 'プロフィール管理',
-    description: 'プロフィール情報の編集・更新',
-    href: '/admin/profile',
-    icon: User,
-  },
-  {
-    title: '案件管理',
-    description: 'ポートフォリオ案件の追加・編集',
-    href: '/admin/projects',
-    icon: Briefcase,
-  },
-
-  {
-    title: 'サイト設定',
-    description: 'サイト全体の設定・管理',
-    href: '/admin/settings',
-    icon: Settings,
-  },
+  // 管理機能カードは削除されました
 ];
 
 export default function AdminLinkCards() {
+  // カードが空の場合の表示
+  if (adminLinks.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-sm text-muted-foreground">
+          管理機能は準備中です
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {adminLinks.map((link) => {

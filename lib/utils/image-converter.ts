@@ -77,7 +77,7 @@ export function validateImageFormat(buffer: Buffer): Promise<{ format: string; i
       .metadata()
       .then((metadata) => {
         const format = metadata.format || 'unknown';
-        const supportedFormats = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'avif', 'tiff', 'bmp'];
+        const supportedFormats = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'avif', 'tiff', 'bmp', 'heif', 'heic'];
         const isSupported = supportedFormats.includes(format.toLowerCase());
         
         resolve({
