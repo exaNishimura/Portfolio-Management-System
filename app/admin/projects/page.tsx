@@ -18,7 +18,7 @@ export default async function ProjectsManagePage() {
             ポートフォリオに表示する案件を管理します。
           </p>
         </div>
-        <Link href="/admin/projects/new">
+        <Link href="/admin/projects/create">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             新規案件追加
