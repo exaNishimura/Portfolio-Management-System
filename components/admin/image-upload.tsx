@@ -50,7 +50,17 @@ export default function ImageUpload({
       const data = await response.json();
       const newImages = [...images, ...data.files];
       onImagesChange(newImages);
-      toast.success(data.message);
+      
+      // 変換統計を含むメッセージを表示
+      let message = data.message;
+      if (data.conversionStats && data.conversionStats.convertedToAVIF > 0) {
+        message += `\n${data.conversionStats.convertedToAVIF}個の画像をAVIFに変換しました`;
+        if (data.conversionStats.totalCompressionRatio) {
+          message += `（${data.conversionStats.totalCompressionRatio} 削減）`;
+        }
+      }
+      
+      toast.success(message);
     } catch (error) {
       console.error('アップロードエラー:', error);
       toast.error(error instanceof Error ? error.message : 'アップロードに失敗しました');
@@ -62,7 +72,7 @@ export default function ImageUpload({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.avif', '.tiff', '.bmp']
     },
     multiple: true,
     disabled: isUploading || images.length >= maxImages
@@ -180,8 +190,8 @@ export default function ImageUpload({
 
                 {!isUploading && (
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p>対応形式: JPEG, PNG, GIF, WebP</p>
-                    <p>最大ファイルサイズ: 5MB</p>
+                    <p>対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP</p>
+                    <p>最大ファイルサイズ: 10MB（自動的にAVIFに変換されます）</p>
                     <p>最大{maxImages}枚まで選択可能 (残り{maxImages - images.length}枚)</p>
                   </div>
                 )}

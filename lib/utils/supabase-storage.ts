@@ -1,10 +1,16 @@
 import { createClient } from '@/utils/supabase/server';
+import { convertToAVIF, validateImageFormat, getImageInfo, formatFileSize, calculateCompressionRatio } from './image-converter';
 
 const BUCKET_NAME = 'project-images';
 
 export interface UploadResult {
   url: string;
   path: string;
+  originalFormat?: string;
+  convertedFormat?: string;
+  originalSize?: number;
+  convertedSize?: number;
+  compressionRatio?: number;
 }
 
 export async function uploadImageToSupabase(
@@ -13,19 +19,61 @@ export async function uploadImageToSupabase(
 ): Promise<UploadResult> {
   const supabase = await createClient();
   
+  // ファイルをBufferに変換
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer as ArrayBuffer);
+  
+  // 画像形式を検証
+  const { format: originalFormat, isSupported } = await validateImageFormat(buffer);
+  
+  if (!isSupported) {
+    throw new Error(`サポートされていない画像形式です: ${originalFormat}`);
+  }
+
+  // 画像情報を取得
+  const originalInfo = await getImageInfo(buffer);
+  const originalSize = buffer.length;
+
+  let finalBuffer = buffer;
+  let finalFormat = originalFormat;
+  let convertedSize = originalSize;
+  let compressionRatio = 0;
+
+  // AVIF以外の形式の場合、AVIFに変換
+  if (originalFormat !== 'avif') {
+    try {
+      console.log(`画像を${originalFormat}からAVIFに変換中...`);
+      const conversionResult = await convertToAVIF(buffer, {
+        quality: 80,
+        maxWidth: 1920,
+        maxHeight: 1080
+      });
+      
+      finalBuffer = conversionResult.buffer;
+      finalFormat = 'avif';
+      convertedSize = conversionResult.convertedSize;
+      compressionRatio = calculateCompressionRatio(originalSize, convertedSize);
+      
+      console.log(`変換完了: ${formatFileSize(originalSize)} → ${formatFileSize(convertedSize)} (${compressionRatio}% 削減)`);
+    } catch (conversionError) {
+      console.warn('AVIF変換に失敗、元の形式でアップロード:', conversionError);
+      // 変換に失敗した場合は元の画像をそのまま使用
+    }
+  }
+
   // ファイル名の生成（タイムスタンプ + ランダム文字列）
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 15);
-  const extension = file.name.split('.').pop();
-  const fileName = `${timestamp}_${randomString}.${extension}`;
+  const fileName = `${timestamp}_${randomString}.${finalFormat}`;
   const filePath = `${folder}/${fileName}`;
 
   // ファイルをSupabaseストレージにアップロード
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
-    .upload(filePath, file, {
+    .upload(filePath, finalBuffer, {
       cacheControl: '3600',
-      upsert: false
+      upsert: false,
+      contentType: `image/${finalFormat}`
     });
 
   if (error) {
@@ -40,7 +88,12 @@ export async function uploadImageToSupabase(
 
   return {
     url: urlData.publicUrl,
-    path: filePath
+    path: filePath,
+    originalFormat,
+    convertedFormat: finalFormat,
+    originalSize,
+    convertedSize,
+    compressionRatio
   };
 }
 
