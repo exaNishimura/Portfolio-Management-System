@@ -34,32 +34,32 @@ export async function uploadImageToSupabase(
   const originalInfo = await getImageInfo(buffer);
   const originalSize = buffer.length;
 
-  let finalBuffer = buffer;
-  let finalFormat = originalFormat;
-  let convertedSize = originalSize;
-  let compressionRatio = 0;
+      let finalBuffer: Buffer = buffer;
+    let finalFormat = originalFormat;
+    let convertedSize = originalSize;
+    let compressionRatio = 0;
 
-  // AVIF以外の形式の場合、AVIFに変換
-  if (originalFormat !== 'avif') {
-    try {
-      console.log(`画像を${originalFormat}からAVIFに変換中...`);
-      const conversionResult = await convertToAVIF(buffer, {
-        quality: 80,
-        maxWidth: 1920,
-        maxHeight: 1080
-      });
-      
-      finalBuffer = conversionResult.buffer;
-      finalFormat = 'avif';
-      convertedSize = conversionResult.convertedSize;
-      compressionRatio = calculateCompressionRatio(originalSize, convertedSize);
-      
-      console.log(`変換完了: ${formatFileSize(originalSize)} → ${formatFileSize(convertedSize)} (${compressionRatio}% 削減)`);
-    } catch (conversionError) {
-      console.warn('AVIF変換に失敗、元の形式でアップロード:', conversionError);
-      // 変換に失敗した場合は元の画像をそのまま使用
+    // AVIF以外の形式の場合、AVIFに変換
+    if (originalFormat !== 'avif') {
+      try {
+        console.log(`画像を${originalFormat}からAVIFに変換中...`);
+        const conversionResult = await convertToAVIF(buffer, {
+          quality: 80,
+          maxWidth: 1920,
+          maxHeight: 1080
+        });
+        
+        finalBuffer = Buffer.from(conversionResult.buffer);
+        finalFormat = 'avif';
+        convertedSize = conversionResult.convertedSize;
+        compressionRatio = calculateCompressionRatio(originalSize, convertedSize);
+        
+        console.log(`変換完了: ${formatFileSize(originalSize)} → ${formatFileSize(convertedSize)} (${compressionRatio}% 削減)`);
+      } catch (conversionError) {
+        console.warn('AVIF変換に失敗、元の形式でアップロード:', conversionError);
+        // 変換に失敗した場合は元の画像をそのまま使用
+      }
     }
-  }
 
   // ファイル名の生成（タイムスタンプ + ランダム文字列）
   const timestamp = Date.now();

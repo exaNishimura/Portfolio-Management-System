@@ -86,6 +86,7 @@ const dummyProjects: Project[] = [
     title: '亀山市公式ホームページ',
     description: '三重県亀山市の公式ホームページのリニューアルプロジェクト。市民の利便性向上とアクセシビリティの改善を重視した設計。',
     image_url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop',
+    images: ['https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop'],
     project_url: 'https://www.city.kameyama.mie.jp/',
     github_url: '',
     technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Supabase'],
@@ -94,13 +95,14 @@ const dummyProjects: Project[] = [
     updated_at: '2024-01-15T00:00:00Z',
     is_featured: true,
     project_year: 2024,
-    project_scale: 'large' as const
+    project_scale: 'large'
   },
   {
     id: '2',
     title: '宿坊心月',
     description: '伝統的な宿坊の魅力を現代的なWebデザインで表現。予約システムと多言語対応を実装し、国内外からの宿泊客に対応。',
     image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
+    images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop'],
     project_url: 'https://shukubo-shingetsu.com/',
     github_url: '',
     technologies: ['React', 'Node.js', 'MongoDB', 'Express'],
@@ -109,13 +111,14 @@ const dummyProjects: Project[] = [
     updated_at: '2023-11-20T00:00:00Z',
     is_featured: true,
     project_year: 2023,
-    project_scale: 'medium' as const
+    project_scale: 'medium'
   },
   {
     id: '3',
     title: '東洋製罐グループホールディングス',
     description: '大手製造業のコーポレートサイト。IR情報の充実と投資家向けコンテンツの最適化を実現。',
     image_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop',
+    images: ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop'],
     project_url: 'https://www.toyo-seikan.co.jp/',
     github_url: '',
     technologies: ['Vue.js', 'Nuxt.js', 'SCSS', 'WordPress'],
@@ -124,7 +127,7 @@ const dummyProjects: Project[] = [
     updated_at: '2023-08-10T00:00:00Z',
     is_featured: false,
     project_year: 2023,
-    project_scale: 'large' as const
+    project_scale: 'large'
   }
 ];
 
@@ -214,16 +217,22 @@ export function HomeClient({ featuredProjects, allProjects = [], profile, isLoad
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          const aDate = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return aDate - bDate;
         case 'name':
           return a.title.localeCompare(b.title);
         case 'featured':
           if (a.is_featured && !b.is_featured) return -1;
           if (!a.is_featured && b.is_featured) return 1;
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          const aFeaturedDate = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bFeaturedDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return bFeaturedDate - aFeaturedDate;
         case 'newest':
         default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          const aNewestDate = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bNewestDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return bNewestDate - aNewestDate;
       }
     });
     

@@ -1,17 +1,19 @@
 export interface Project {
   id: string;
   title: string;
-  description: string;
-  image_url: string;
-  project_url: string;
-  github_url: string;
+  description: string | null;
+  image_url: string | null; // 後方互換性のため残す
+  images: string[]; // 新しい複数画像フィールド
+  image_paths?: string[]; // Supabaseストレージのパス情報（削除用）
+  project_url: string | null;
+  github_url: string | null;
   technologies: string[];
   category: string;
-  created_at: string;
-  updated_at: string;
-  is_featured: boolean;
-  project_year: number;
-  project_scale: 'small' | 'medium' | 'large';
+  created_at: string | null;
+  updated_at: string | null;
+  is_featured: boolean | null;
+  project_year: number | null;
+  project_scale: string | null;
 }
 
 
