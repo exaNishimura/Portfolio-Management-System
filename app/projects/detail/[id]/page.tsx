@@ -16,6 +16,7 @@ import {
   Star,
   Globe
 } from 'lucide-react';
+import { SkillIcon } from '@/lib/utils/skill-icons';
 import { getSupabaseClient, createBuildTimeSupabaseClient } from '@/lib/supabase';
 import { Project } from '@/types';
 
@@ -161,7 +162,8 @@ export default async function ProjectDetailPage({ params }: Props) {
                   <CardTitle className="text-2xl lg:text-3xl">{project.title}</CardTitle>
                   <div className="flex flex-wrap gap-2 mt-4">
                     {project.technologies?.map((tech: string) => (
-                      <Badge key={tech} variant="outline" className="text-sm">
+                      <Badge key={tech} variant="outline" className="text-sm flex items-center gap-1.5">
+                        <SkillIcon skill={tech} size={14} />
                         {tech}
                       </Badge>
                     ))}
@@ -249,7 +251,10 @@ export default async function ProjectDetailPage({ params }: Props) {
                   <div className="space-y-3">
                     {project.technologies?.map((tech: string) => (
                       <div key={tech} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <span className="font-medium">{tech}</span>
+                        <div className="flex items-center gap-2">
+                          <SkillIcon skill={tech} size={16} />
+                          <span className="font-medium">{tech}</span>
+                        </div>
                         <Badge variant="secondary" className="text-xs">
                           技術
                         </Badge>

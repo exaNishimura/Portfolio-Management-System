@@ -26,6 +26,7 @@ import {
   ChevronUp,
   Code
 } from 'lucide-react';
+import { SkillIcon } from '@/lib/utils/skill-icons';
 import { Project, Category } from '@/types';
 import { Profile } from '@/lib/types/database';
 import { ProjectSkeleton } from '@/components/project-skeleton';
@@ -420,7 +421,8 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                 <h3 className="text-sm font-semibold">主要スキル</h3>
                 <div className="flex flex-wrap gap-2">
                   {profileToUse.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary">
+                    <Badge key={skill} variant="secondary" className="flex items-center gap-1.5">
+                      <SkillIcon skill={skill} size={14} />
                       {skill}
                     </Badge>
                   ))}
@@ -487,7 +489,8 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                           </p>
                           <div className="flex flex-wrap gap-1 mt-2">
                             {project.technologies.slice(0, 3).map((tech) => (
-                              <Badge key={tech} variant="outline" className="text-xs">
+                              <Badge key={tech} variant="outline" className="text-xs flex items-center gap-1">
+                                <SkillIcon skill={tech} size={12} />
                                 {tech}
                               </Badge>
                             ))}
@@ -660,7 +663,8 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                                   }
                                   className="border-slate-400 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                                 />
-                                <Label htmlFor={tech} className="text-sm cursor-pointer text-slate-200 hover:text-white transition-colors">
+                                <Label htmlFor={tech} className="text-sm cursor-pointer text-slate-200 hover:text-white transition-colors flex items-center gap-2">
+                                  <SkillIcon skill={tech} size={14} />
                                   {tech}
                                 </Label>
                               </motion.div>
@@ -850,11 +854,12 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                                 <Badge 
                                   key={tech} 
                                   variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
-                                  className="text-xs px-3 py-1 cursor-pointer"
+                                  className="text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5"
                                   onClick={() => {
                                     handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
                                   }}
                                 >
+                                  <SkillIcon skill={tech} size={12} />
                                   {tech}
                                 </Badge>
                               ))}

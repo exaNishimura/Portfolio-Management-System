@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { toast } from 'sonner';
 import { X, Plus, User } from 'lucide-react';
+import { SkillIcon } from '@/lib/utils/skill-icons';
 
 const profileSchema = z.object({
   name: z.string().min(1, '名前は必須です'),
@@ -446,7 +447,8 @@ export default function ProfileForm() {
 
                 <div className="flex flex-wrap gap-2">
                   {skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="flex items-center gap-1">
+                    <Badge key={skill} variant="secondary" className="flex items-center gap-1.5">
+                      <SkillIcon skill={skill} size={14} />
                       {skill}
                       <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-destructive">
                         <X className="h-3 w-3" />
