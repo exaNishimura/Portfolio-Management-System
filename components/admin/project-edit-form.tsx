@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,6 +17,7 @@ import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Project } from '@/lib/types/database';
 import ImageUpload from './image-upload';
+import MarkdownEditor from './markdown-editor';
 
 const formSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です'),
@@ -33,10 +33,6 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
-
-interface ProjectEditFormProps {
-  project: Project;
-}
 
 const categoryOptions = [
   { value: 'web', label: 'Webサイト' },
@@ -62,6 +58,10 @@ const commonTechnologies = [
   'Tailwind CSS', 'SCSS', 'Bootstrap', 'Material-UI', 'Chakra UI',
   'Git', 'GitHub', 'GitLab', 'Figma', 'Adobe XD'
 ];
+
+interface ProjectEditFormProps {
+  project: Project;
+}
 
 export default function ProjectEditForm({ project }: ProjectEditFormProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -120,6 +120,7 @@ export default function ProjectEditForm({ project }: ProjectEditFormProps) {
         throw new Error('プロジェクトの更新に失敗しました');
       }
 
+      const result = await response.json();
       toast.success('プロジェクトを更新しました');
       router.push('/admin/projects');
       router.refresh();
@@ -185,7 +186,7 @@ export default function ProjectEditForm({ project }: ProjectEditFormProps) {
               />
             </div>
 
-            {/* 説明 */}
+            {/* 説明（マークダウンエディター） */}
             <FormField
               control={form.control}
               name="description"
@@ -193,12 +194,16 @@ export default function ProjectEditForm({ project }: ProjectEditFormProps) {
                 <FormItem>
                   <FormLabel>説明</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="プロジェクトの詳細な説明を入力"
-                      rows={4}
-                      {...field} 
+                    <MarkdownEditor
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      placeholder="プロジェクトの詳細な説明をマークダウン形式で入力してください..."
+                      rows={6}
                     />
                   </FormControl>
+                  <FormDescription>
+                    マークダウン記法を使用して詳細な説明を記述できます
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

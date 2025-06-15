@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import ImageUpload from './image-upload';
+import MarkdownEditor from './markdown-editor';
 
 const formSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です'),
@@ -181,7 +181,7 @@ export default function ProjectCreateForm() {
               />
             </div>
 
-            {/* 説明 */}
+            {/* 説明（マークダウンエディター） */}
             <FormField
               control={form.control}
               name="description"
@@ -189,12 +189,16 @@ export default function ProjectCreateForm() {
                 <FormItem>
                   <FormLabel>説明</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="プロジェクトの詳細な説明を入力"
-                      rows={4}
-                      {...field} 
+                    <MarkdownEditor
+                      value={field.value || ''}
+                      onChange={field.onChange}
+                      placeholder="プロジェクトの詳細な説明をマークダウン形式で入力してください..."
+                      rows={6}
                     />
                   </FormControl>
+                  <FormDescription>
+                    マークダウン記法を使用して詳細な説明を記述できます
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

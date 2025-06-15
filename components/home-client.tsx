@@ -31,6 +31,47 @@ import { Project } from '@/types';
 import { Profile } from '@/lib/types/database';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 
+// シンプルなマークダウンパーサー（基本的な要素のみ）
+const parseMarkdown = (text: string): string => {
+  if (!text) return '';
+  
+  let html = text
+    // ヘッダー
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mb-2 mt-4">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mb-3 mt-4">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-4 mt-4">$1</h1>')
+    
+    // 太字・斜体
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+    
+    // コード
+    .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+    
+    // リンク
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">$1</a>')
+    
+    // リスト
+    .replace(/^\* (.+$)/gim, '<li class="ml-4">• $1</li>')
+    .replace(/^- (.+$)/gim, '<li class="ml-4">• $1</li>')
+    
+    // 改行
+    .replace(/\n\n/g, '</p><p class="mb-3">')
+    .replace(/\n/g, '<br>');
+
+  // リストをまとめる
+  html = html.replace(/(<li[^>]*>.*?<\/li>)/g, (match) => {
+    return `<ul class="mb-3">${match}</ul>`;
+  });
+
+  // 段落で囲む
+  if (html && !html.startsWith('<h') && !html.startsWith('<ul')) {
+    html = `<p class="mb-3">${html}</p>`;
+  }
+
+  return html;
+};
+
 // ダミーデータ
 const dummyProfile: Profile = {
   id: '1',
@@ -492,9 +533,10 @@ export function HomeClient({ featuredProjects, allProjects = [], profile, isLoad
                         )}
                         <div className="flex-1 min-w-0">
                           <h3 className="text-sm font-semibold truncate">{project.title}</h3>
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {project.description}
-                          </p>
+                          <div 
+                            className="text-xs text-muted-foreground line-clamp-2"
+                            dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
+                          />
                           <div className="flex flex-wrap gap-1 mt-2">
                             {project.technologies.slice(0, 3).map((tech) => (
                               <Badge key={tech} variant="outline" className="text-xs flex items-center gap-1">
@@ -857,9 +899,10 @@ export function HomeClient({ featuredProjects, allProjects = [], profile, isLoad
                                 </Badge>
                               )}
                             </div>
-                            <CardDescription className="line-clamp-3 text-base mt-2">
-                              {project.description}
-                            </CardDescription>
+                            <div 
+                              className="line-clamp-3 text-base mt-2 text-muted-foreground"
+                              dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
+                            />
                           </CardHeader>
                           <CardContent className="p-6 pt-0">
                             <div className="flex flex-wrap gap-2 mb-6">

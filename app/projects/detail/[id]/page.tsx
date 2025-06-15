@@ -20,6 +20,47 @@ import { SkillIcon } from '@/lib/utils/skill-icons';
 import { getSupabaseClient, createBuildTimeSupabaseClient } from '@/lib/supabase';
 import { Project } from '@/types';
 
+// シンプルなマークダウンパーサー（基本的な要素のみ）
+const parseMarkdown = (text: string): string => {
+  if (!text) return '';
+  
+  let html = text
+    // ヘッダー
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mb-2 mt-4">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mb-3 mt-4">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-4 mt-4">$1</h1>')
+    
+    // 太字・斜体
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+    
+    // コード
+    .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+    
+    // リンク
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">$1</a>')
+    
+    // リスト
+    .replace(/^\* (.+$)/gim, '<li class="ml-4">• $1</li>')
+    .replace(/^- (.+$)/gim, '<li class="ml-4">• $1</li>')
+    
+    // 改行
+    .replace(/\n\n/g, '</p><p class="mb-3">')
+    .replace(/\n/g, '<br>');
+
+  // リストをまとめる
+  html = html.replace(/(<li[^>]*>.*?<\/li>)/g, (match) => {
+    return `<ul class="mb-3">${match}</ul>`;
+  });
+
+  // 段落で囲む
+  if (html && !html.startsWith('<h') && !html.startsWith('<ul')) {
+    html = `<p class="mb-3">${html}</p>`;
+  }
+
+  return html;
+};
+
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -204,9 +245,16 @@ export default async function ProjectDetailPage({ params }: Props) {
                       <Code2 className="h-5 w-5 mr-2" />
                       プロジェクト概要
                     </h3>
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
-                      {project.description}
-                    </p>
+                    {project.description ? (
+                      <div 
+                        className="prose prose-sm max-w-none text-muted-foreground leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description) }}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground leading-relaxed">
+                        説明がありません
+                      </p>
+                    )}
                   </div>
 
                   <Separator />
