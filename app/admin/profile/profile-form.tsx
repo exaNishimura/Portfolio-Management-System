@@ -134,18 +134,19 @@ export default function ProfileForm() {
     const currentValues = form.getValues();
     
     // avatar_urlをnullに設定してフォームを保存
+    // 空文字列の場合はnullを設定してデータベースから削除
     const profileData = {
       name: currentValues.name,
-      title: currentValues.title || undefined,
-      bio: currentValues.bio || undefined,
+      title: currentValues.title && currentValues.title.trim() !== '' ? currentValues.title : null,
+      bio: currentValues.bio && currentValues.bio.trim() !== '' ? currentValues.bio : null,
       avatar_url: null, // 明示的にnullを設定
-      email: currentValues.email || undefined,
-      github_url: currentValues.github_url || undefined,
-      linkedin_url: currentValues.linkedin_url || undefined,
-      website: currentValues.website_url || undefined,
-      location: currentValues.location || undefined,
+      email: currentValues.email && currentValues.email.trim() !== '' ? currentValues.email : null,
+      github_url: currentValues.github_url && currentValues.github_url.trim() !== '' ? currentValues.github_url : null,
+      linkedin_url: currentValues.linkedin_url && currentValues.linkedin_url.trim() !== '' ? currentValues.linkedin_url : null,
+      website: currentValues.website_url && currentValues.website_url.trim() !== '' ? currentValues.website_url : null,
+      location: currentValues.location && currentValues.location.trim() !== '' ? currentValues.location : null,
       skills: skills,
-      experience_years: currentValues.experience_years || undefined,
+      experience_years: currentValues.experience_years || null,
     };
 
     try {
@@ -176,20 +177,24 @@ export default function ProfileForm() {
     setIsLoading(true);
     try {
       // スキルを含めたデータを準備
+      // 空文字列の場合はnullを設定してデータベースから削除
       const profileData = {
         name: data.name,
-        title: data.title || undefined,
-        bio: data.bio || undefined,
-        avatar_url: data.image_url || undefined,
-        email: data.email || undefined,
-        github_url: data.github_url || undefined,
-        linkedin_url: data.linkedin_url || undefined,
-        website: data.website_url || undefined,
-        location: data.location || undefined,
+        title: data.title && data.title.trim() !== '' ? data.title : null,
+        bio: data.bio && data.bio.trim() !== '' ? data.bio : null,
+        avatar_url: data.image_url && data.image_url.trim() !== '' ? data.image_url : null,
+        email: data.email && data.email.trim() !== '' ? data.email : null,
+        github_url: data.github_url && data.github_url.trim() !== '' ? data.github_url : null,
+        linkedin_url: data.linkedin_url && data.linkedin_url.trim() !== '' ? data.linkedin_url : null,
+        website: data.website_url && data.website_url.trim() !== '' ? data.website_url : null,
+        location: data.location && data.location.trim() !== '' ? data.location : null,
         skills: skills,
-        experience_years: data.experience_years || undefined,
+        experience_years: data.experience_years || null,
       };
 
+      // デバッグ用ログ
+      console.log('Sending profile data:', profileData);
+      
       // APIルートを呼び出し
       const response = await fetch('/api/admin/profile', {
         method: 'POST',

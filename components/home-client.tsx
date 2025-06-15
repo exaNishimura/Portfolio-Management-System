@@ -41,10 +41,10 @@ const dummyProfile: Profile = {
   experience_years: 5,
   email: 'contact@example.com',
   phone: null,
-  website: null,
-  github_url: 'https://github.com',
-  linkedin_url: 'https://linkedin.com',
-  twitter_url: 'https://twitter.com',
+  website: 'https://example.com',
+  github_url: 'https://github.com/username',
+  linkedin_url: 'https://linkedin.com/in/username',
+  twitter_url: 'https://twitter.com/username',
   skills: ['React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'PostgreSQL'],
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
@@ -437,17 +437,25 @@ export function HomeClient({ featuredProjects, categories, allProjects = [], pro
                     </a>
                   </Button>
                 )}
-                {profileToUse.twitter_url && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={profileToUse.twitter_url} target="_blank" rel="noopener noreferrer">
-                      Twitter
-                    </a>
-                  </Button>
-                )}
                 {profileToUse.linkedin_url && (
                   <Button variant="outline" size="sm" asChild>
                     <a href={profileToUse.linkedin_url} target="_blank" rel="noopener noreferrer">
                       LinkedIn
+                    </a>
+                  </Button>
+                )}
+                {profileToUse.website && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={profileToUse.website} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      ウェブサイト
+                    </a>
+                  </Button>
+                )}
+                {profileToUse.twitter_url && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={profileToUse.twitter_url} target="_blank" rel="noopener noreferrer">
+                      Twitter
                     </a>
                   </Button>
                 )}

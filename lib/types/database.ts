@@ -79,18 +79,18 @@ export interface CategoryFormData {
 
 export interface ProfileFormData {
   name: string;
-  title?: string;
-  bio?: string;
-  email?: string;
-  phone?: string;
-  location?: string;
-  website?: string;
-  github_url?: string;
-  linkedin_url?: string;
-  twitter_url?: string;
+  title?: string | null;
+  bio?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  website?: string | null;
+  github_url?: string | null;
+  linkedin_url?: string | null;
+  twitter_url?: string | null;
   avatar_url?: string | null;
   skills: string[];
-  experience_years?: number;
+  experience_years?: number | null;
 }
 
 export interface SiteSettingFormData {

@@ -4,18 +4,18 @@ import { upsertProfile, getProfile } from '@/dal/profiles';
 
 const profileSchema = z.object({
   name: z.string().min(1, '名前は必須です'),
-  title: z.string().optional(),
-  bio: z.string().optional(),
-  email: z.string().email('正しいメールアドレスを入力してください').optional(),
-  phone: z.string().optional(),
-  location: z.string().optional(),
-  website: z.string().url('正しいURLを入力してください').optional(),
-  github_url: z.string().url('正しいURLを入力してください').optional(),
-  linkedin_url: z.string().url('正しいURLを入力してください').optional(),
-  twitter_url: z.string().url('正しいURLを入力してください').optional(),
+  title: z.string().optional().nullable(),
+  bio: z.string().optional().nullable(),
+  email: z.string().email('正しいメールアドレスを入力してください').optional().nullable(),
+  phone: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  website: z.string().url('正しいURLを入力してください').optional().nullable(),
+  github_url: z.string().url('正しいURLを入力してください').optional().nullable(),
+  linkedin_url: z.string().url('正しいURLを入力してください').optional().nullable(),
+  twitter_url: z.string().url('正しいURLを入力してください').optional().nullable(),
   avatar_url: z.string().url('正しいURLを入力してください').optional().nullable(),
   skills: z.array(z.string()).default([]),
-  experience_years: z.number().min(0).optional(),
+  experience_years: z.number().min(0).optional().nullable(),
 });
 
 export async function GET() {
