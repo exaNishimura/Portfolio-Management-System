@@ -10,15 +10,15 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { toast } from 'sonner';
-import { X, Plus, Upload, User } from 'lucide-react';
-import Image from 'next/image';
+import { X, Plus, User } from 'lucide-react';
 
 const profileSchema = z.object({
   name: z.string().min(1, '名前は必須です'),
   title: z.string().optional(),
   bio: z.string().optional(),
-  image_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
+  image_url: z.string().optional(),
   email: z.string().email('有効なメールアドレスを入力してください').optional().or(z.literal('')),
   github_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
   linkedin_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
@@ -256,27 +256,16 @@ export default function ProfileForm() {
                 name="image_url"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>プロフィール画像URL</FormLabel>
+                    <FormLabel>プロフィール画像</FormLabel>
                     <FormControl>
-                      <div className="space-y-2">
-                        <Input 
-                          placeholder="https://example.com/image.jpg"
-                          {...field} 
-                        />
-                        {field.value && (
-                          <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
-                            <Image
-                              src={field.value}
-                              alt="プロフィール画像プレビュー"
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        )}
-                      </div>
+                      <ImageUpload
+                        value={field.value}
+                        onChange={(value) => field.onChange(value)}
+                        disabled={isLoading}
+                      />
                     </FormControl>
                     <FormDescription>
-                      プロフィール画像のURLを入力してください。
+                      プロフィール画像をアップロードしてください。JPEG、PNG、WebP形式（最大5MB）
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
