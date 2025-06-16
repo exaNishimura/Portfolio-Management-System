@@ -17,7 +17,7 @@ import { Project } from '@/types';
 import { Profile } from '@/lib/types/database';
 import Image from "next/image";
 import * as LucideIcons from "lucide-react";
-import { HomeClient } from '@/components/home-client';
+import { HomeClientNew } from '@/components/home-client-new';
 import { Suspense } from 'react';
 
 async function ProjectsData() {
@@ -66,7 +66,7 @@ async function ProjectsData() {
   console.log('Server - allProjects:', allProjects.length);
 
   return (
-    <HomeClient 
+    <HomeClientNew 
       profile={profile}
       featuredProjects={featuredProjects}
       allProjects={allProjects}
@@ -77,7 +77,7 @@ async function ProjectsData() {
 
 export default function Home() {
   return (
-    <Suspense fallback={<HomeClient profile={undefined} featuredProjects={[]} allProjects={[]} isLoading={true} />}>
+    <Suspense fallback={<HomeClientNew profile={undefined} featuredProjects={[]} allProjects={[]} isLoading={true} />}>
       <ProjectsData />
     </Suspense>
   );

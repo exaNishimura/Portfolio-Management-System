@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter, Noto_Sans_JP } from 'next/font/google';
+import { Inter, Noto_Sans_JP, Pacifico } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
@@ -11,6 +11,11 @@ const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'], 
   variable: '--font-noto-sans-jp',
   weight: ['300', '400', '500', '700']
+});
+const pacifico = Pacifico({ 
+  subsets: ['latin'], 
+  variable: '--font-pacifico',
+  weight: '400'
 });
 
 export const metadata: Metadata = {
@@ -33,7 +38,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja" suppressHydrationWarning>
-      <body className={`${inter.variable} ${notoSansJP.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${notoSansJP.variable} ${pacifico.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
