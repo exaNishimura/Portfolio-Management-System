@@ -63,7 +63,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* ロゴ */}
         <Link href="/" className="flex items-center">
-          <span className="font-pacifico text-2xl">Portfolio</span>
+          <span className="font-pacifico text-4xl">Portfolio</span>
         </Link>
 
         {/* 右側のボタン群とナビゲーション */}
