@@ -12,18 +12,18 @@ export default function Footer() {
           <div className="text-center space-y-2">
             <h3 className="text-lg font-semibold">Portfolio Site</h3>
             <p className="text-sm text-muted-foreground">
-              Web開発者のポートフォリオサイトです。
+              A professional web developer portfolio.
             </p>
           </div>
 
           {/* 連絡先 */}
           <div className="space-y-4 text-center">
-            <h3 className="text-base font-semibold">連絡先</h3>
+            <h3 className="text-base font-semibold">Contact</h3>
             <div className="flex justify-center space-x-6">
               <a
                 href="mailto:exasolcojp@gmail.com"
                 className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center space-x-2"
-                aria-label="メール"
+                aria-label="Email"
               >
                 <Mail className="h-5 w-5" />
                 <span className="text-sm">exasolcojp@gmail.com</span>
@@ -41,10 +41,10 @@ export default function Footer() {
               <Link
                 href="/auth/login"
                 className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center space-x-2"
-                aria-label="管理者ログイン"
+                aria-label="Admin Login"
               >
                 <LogIn className="h-5 w-5" />
-                <span className="text-sm">管理者ログイン</span>
+                <span className="text-sm">Admin Login</span>
               </Link>
             </div>
           </div>

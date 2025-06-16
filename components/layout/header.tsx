@@ -50,8 +50,8 @@ export default function Header() {
   };
 
   const navigation = [
-    { name: 'ホーム', href: '/', icon: Home },
-    { name: 'お問い合わせ', href: '/contact', icon: Mail },
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'Contact', href: '/contact', icon: Mail },
   ];
 
   if (!mounted) {
@@ -100,11 +100,11 @@ export default function Header() {
               <Link href="/admin">
                 <Button variant="ghost" size="sm">
                   <Settings className="h-4 w-4 mr-1" />
-                  管理
+                  Admin
                 </Button>
               </Link>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                ログアウト
+                Logout
               </Button>
             </div>
           )}
@@ -151,7 +151,7 @@ export default function Header() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <Settings className="h-4 w-4" />
-                    <span>管理</span>
+                    <span>Admin</span>
                   </Link>
                   <button
                     onClick={() => {
@@ -160,7 +160,7 @@ export default function Header() {
                     }}
                     className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent transition-colors duration-200 w-full text-left"
                   >
-                    <span>ログアウト</span>
+                    <span>Logout</span>
                   </button>
                 </div>
               )}
