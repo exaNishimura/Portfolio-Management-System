@@ -459,38 +459,47 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                           ease: "easeInOut"
                         }}
                       >
-                        <Card className="h-full hover:shadow-lg transition-all duration-200">
+                        <Card className="group h-full flex flex-col overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 ease-out">
+                          {/* 画像セクション */}
                           {((project.images && project.images.length > 0) || project.image_url) && (
                             <Link href={`/projects/detail/${project.id}`}>
-                              <div className="relative w-full h-64 rounded-t-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
+                              <div className="relative w-full h-64 overflow-hidden">
                                 <Image 
                                   src={(project.images && project.images.length > 0) ? project.images[0] : project.image_url!} 
                                   alt={project.title} 
                                   fill 
-                                  className="object-cover" 
+                                  className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300" 
                                 />
+                                {/* 注目バッジ - 画像右上に配置 */}
+                                {project.is_featured && (
+                                  <div className="absolute top-3 right-3 z-10">
+                                    <Badge 
+                                      variant="secondary" 
+                                      className="bg-yellow-500 text-white shadow-lg backdrop-blur-sm border-0 font-semibold"
+                                    >
+                                      <Star className="h-3 w-3 mr-1 fill-current" />
+                                      注目
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
                             </Link>
                           )}
-                          <CardHeader className="p-6 pb-4">
-                            <div className="flex items-start justify-between">
-                              <CardTitle className="text-lg sm:text-xl line-clamp-2">
+                          
+                          {/* コンテンツセクション */}
+                          <div className="flex flex-col flex-1 p-6">
+                            <div className="flex-1">
+                              <CardTitle className="text-lg sm:text-xl line-clamp-2 mb-2">
                                 {project.title}
                               </CardTitle>
-                              {project.is_featured && (
-                                <Badge variant="secondary" className="ml-2 text-sm">
-                                  <Star className="h-4 w-4 mr-1" />
-                                  注目
-                                </Badge>
-                              )}
+                              <div 
+                                className="line-clamp-3 text-base mt-2 text-muted-foreground mb-4"
+                                dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
+                              />
                             </div>
-                            <div 
-                              className="line-clamp-3 text-base mt-2 text-muted-foreground"
-                              dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
-                            />
-                          </CardHeader>
-                          <CardContent className="p-6 pt-0">
-                            <div className="flex flex-wrap gap-2 mb-6">
+                            
+                            {/* 技術タグ */}
+                            <div className="flex flex-wrap gap-2 mb-4">
                               {project.technologies.slice(0, 6).map((tech: string) => (
                                 <Badge 
                                   key={tech} 
@@ -510,28 +519,30 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                                 </Badge>
                               )}
                             </div>
-                            <div className="flex gap-3">
-                              <Link href={`/projects/detail/${project.id}`}>
-                                <Button variant="outline" size="default" className="flex-1">
+                            
+                            {/* ボタンセクション - 最下部に固定 */}
+                            <div className="flex gap-2 mt-auto">
+                              <Link href={`/projects/detail/${project.id}`} className="flex-1">
+                                <Button variant="outline" className="w-full">
                                   詳細を見る
                                 </Button>
                               </Link>
                               {project.project_url && (
-                                <Button variant="outline" size="default" asChild>
+                                <Button variant="outline" size="icon" asChild>
                                   <a href={project.project_url} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="h-4 w-4" />
                                   </a>
                                 </Button>
                               )}
                               {project.github_url && (
-                                <Button variant="outline" size="default" asChild>
+                                <Button variant="outline" size="icon" asChild>
                                   <a href={project.github_url} target="_blank" rel="noopener noreferrer">
                                     <Github className="h-4 w-4" />
                                   </a>
                                 </Button>
                               )}
                             </div>
-                          </CardContent>
+                          </div>
                         </Card>
                       </motion.div>
                     ))}
