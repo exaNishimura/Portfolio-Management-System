@@ -93,8 +93,7 @@ const itemVariants = {
 export function ProjectsSection({ projects, isLoading = false }: ProjectsSectionProps) {
   const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('newest');
-  const [isFilterSticky, setIsFilterSticky] = useState(false);
-  const [filterTopPosition, setFilterTopPosition] = useState('50%');
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [isTechFilterOpen, setIsTechFilterOpen] = useState(false);
   const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(true);
@@ -168,7 +167,7 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
     localStorage.setItem('sidebarMinimized', JSON.stringify(isSidebarMinimized));
   }, [isSidebarMinimized]);
 
-  // スクロール監視
+  // フィルターの表示監視（プロジェクトセクションが表示されている時のみ）
   useEffect(() => {
     const checkFilterVisibility = () => {
       const projectsSection = document.getElementById('projects-section');
@@ -177,28 +176,11 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
       const rect = projectsSection.getBoundingClientRect();
       const isVisible = rect.top <= window.innerHeight && rect.bottom >= 0;
       
-      if (isVisible && !isFilterSticky) {
-        setIsFilterSticky(true);
-      } else if (!isVisible && isFilterSticky) {
-        setIsFilterSticky(false);
-      }
+      setIsFilterVisible(isVisible);
     };
 
     const handleScroll = () => {
       checkFilterVisibility();
-      
-      const projectsSection = document.getElementById('projects-section');
-      if (!projectsSection) return;
-
-      const rect = projectsSection.getBoundingClientRect();
-      const sectionHeight = rect.height;
-      const viewportHeight = window.innerHeight;
-      
-      if (rect.top <= 0 && rect.bottom >= viewportHeight) {
-        const scrollProgress = Math.abs(rect.top) / (sectionHeight - viewportHeight);
-        const topPosition = Math.max(10, Math.min(90, 10 + scrollProgress * 80));
-        setFilterTopPosition(`${topPosition}%`);
-      }
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -207,7 +189,9 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isFilterSticky]);
+  }, []);
+
+
 
   const handleTechnologyChange = (tech: string, checked: boolean | 'indeterminate') => {
     if (checked === 'indeterminate') return;
@@ -230,179 +214,124 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
 
   return (
     <>
-      {/* 固定フィルタータブ */}
+      {/* フローティングフィルター - 画面右下に固定 */}
       <AnimatePresence>
-        {isFilterSticky && (
+        {isFilterVisible && (
           <motion.div 
-            className="fixed right-0 z-50"
-            style={{ top: filterTopPosition, transform: 'translateY(0)' }}
-            initial={{ x: '100%', opacity: 0 }}
-            animate={{ 
-              x: isSidebarMinimized ? 'calc(100% - 60px)' : 0,
-              opacity: 1
-            }}
-            exit={{ x: '100%', opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className="fixed bottom-6 right-6 z-50"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
-            <div className={`bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl transition-all duration-400 ${
-              isSidebarMinimized 
-                ? 'rounded-l-2xl w-60 h-16' 
-                : 'rounded-l-2xl w-80 min-h-96'
-            }`}>
-              {/* タブハンドル（最小化時の表示） */}
-              <AnimatePresence>
-                {isSidebarMinimized && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="h-full flex items-center justify-between px-4 cursor-pointer"
-                    onClick={() => setIsSidebarMinimized(false)}
-                  >
+            {/* フィルターアイコン（画面右下に固定） */}
+            <div className="absolute bottom-0 right-0 z-10">
+              <div 
+                className="p-3 cursor-pointer hover:bg-white/10 rounded-full transition-all duration-200"
+                onClick={() => setIsSidebarMinimized(!isSidebarMinimized)}
+              >
+                <Filter className="h-6 w-6 text-slate-700 dark:text-white" />
+              </div>
+            </div>
+
+            {/* フィルター内容パネル（展開時のみ表示） */}
+            <AnimatePresence>
+              {!isSidebarMinimized && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  className="bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl w-80 min-h-96 pt-6 pb-6 px-6"
+                  style={{ marginBottom: '60px', marginRight: '0px' }}
+                >
+                  {/* ヘッダー */}
+                  <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                      <Filter className="h-5 w-5 text-blue-400" />
-                      <span className="font-medium text-sm">フィルター</span>
+                      <h3 className="font-semibold text-lg text-slate-800 dark:text-white">フィルター</h3>
                     </div>
-                    <div className="text-xs bg-blue-500 px-2 py-1 rounded-full">
-                      {filteredAndSortedProjects.length}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
 
-              {/* フィルター内容（展開時の表示） */}
-              <AnimatePresence>
-                {!isSidebarMinimized && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.3 }}
-                    className="p-6 space-y-6"
-                  >
-                    {/* ヘッダー */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Filter className="h-5 w-5 text-blue-400" />
-                        <h3 className="font-semibold text-lg">フィルター</h3>
-                      </div>
-                      <button
-                        onClick={() => setIsSidebarMinimized(true)}
-                        className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </button>
-                    </div>
-
+                  <div className="space-y-6">
                     {/* 技術スタックフィルター */}
                     <Collapsible open={isTechFilterOpen} onOpenChange={setIsTechFilterOpen}>
-                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
-                        <span className="font-medium">技術スタック</span>
-                        {isTechFilterOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 rounded-xl transition-colors backdrop-blur-sm">
+                        <span className="font-medium text-slate-800 dark:text-white">技術スタック</span>
+                        {isTechFilterOpen ? <ChevronUp className="h-4 w-4 text-slate-800 dark:text-white" /> : <ChevronDown className="h-4 w-4 text-slate-800 dark:text-white" />}
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <motion.div 
-                          className="mt-3 space-y-3 max-h-48 overflow-y-auto"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                        >
-                          {allTechnologies.map((tech) => (
-                            <motion.div 
-                              key={tech} 
-                              className="flex items-center space-x-3"
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <Checkbox
-                                id={`tech-${tech}`}
-                                checked={selectedTechnologies.includes(tech)}
-                                onCheckedChange={(checked) => handleTechnologyChange(tech, checked)}
-                                className="border-slate-400 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                              />
-                              <Label 
-                                htmlFor={`tech-${tech}`} 
-                                className="text-sm cursor-pointer flex items-center gap-2 flex-1"
+                        <div className="mt-3 max-h-48 overflow-y-auto">
+                          <div className="flex flex-wrap gap-2">
+                            {allTechnologies.map((tech) => (
+                              <Badge 
+                                key={tech} 
+                                variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
+                                className="text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5 hover:bg-opacity-80 transition-all duration-200"
+                                onClick={() => {
+                                  handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
+                                }}
                               >
-                                <SkillIcon skill={tech} size={16} />
+                                <SkillIcon skill={tech} size={12} />
                                 {tech}
-                              </Label>
-                            </motion.div>
-                          ))}
-                        </motion.div>
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
                       </CollapsibleContent>
                     </Collapsible>
 
                     {/* ソートフィルター */}
                     <Collapsible open={isSortFilterOpen} onOpenChange={setIsSortFilterOpen}>
-                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors">
-                        <span className="font-medium">並び順</span>
-                        {isSortFilterOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 rounded-xl transition-colors backdrop-blur-sm">
+                        <span className="font-medium text-slate-800 dark:text-white">並び順</span>
+                        {isSortFilterOpen ? <ChevronUp className="h-4 w-4 text-slate-800 dark:text-white" /> : <ChevronDown className="h-4 w-4 text-slate-800 dark:text-white" />}
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <motion.div 
-                          className="mt-3"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                        >
+                        <div className="mt-3">
                           <RadioGroup value={sortBy} onValueChange={setSortBy} className="space-y-3">
                             {[
                               { value: 'newest', label: '新しい順' },
                               { value: 'oldest', label: '古い順' },
                               { value: 'title', label: 'タイトル順' }
                             ].map((option) => (
-                              <motion.div 
+                              <div 
                                 key={option.value} 
                                 className="flex items-center space-x-3"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.2 }}
                               >
                                 <RadioGroupItem 
                                   value={option.value} 
-                                  id={`sort-${option.value}`}
-                                  className="border-slate-400 text-blue-500"
+                                  id={`floating-sort-${option.value}`}
+                                  className="border-slate-600 dark:border-slate-400 text-blue-500"
                                 />
                                 <Label 
-                                  htmlFor={`sort-${option.value}`} 
-                                  className="text-sm cursor-pointer flex-1"
+                                  htmlFor={`floating-sort-${option.value}`} 
+                                  className="text-sm cursor-pointer flex-1 text-slate-800 dark:text-white"
                                 >
                                   {option.label}
                                 </Label>
-                              </motion.div>
+                              </div>
                             ))}
                           </RadioGroup>
-                        </motion.div>
+                        </div>
                       </CollapsibleContent>
                     </Collapsible>
 
                     {/* フィルタークリア */}
-                    <motion.button
+                    <button
                       onClick={clearFilters}
-                      className="w-full p-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl text-white font-medium transition-all duration-200"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      className="w-full p-3 bg-gradient-to-r from-red-500/80 to-pink-600/80 hover:from-red-500 hover:to-pink-600 rounded-xl text-white font-medium transition-all duration-200 backdrop-blur-sm"
                     >
                       フィルターをクリア
-                    </motion.button>
+                    </button>
 
                     {/* 結果件数 */}
-                    <motion.div 
-                      className="text-center text-slate-300 text-sm"
-                      key={filteredAndSortedProjects.length}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
+                    <div className="text-center text-slate-600 dark:text-slate-300 text-sm">
                       {filteredAndSortedProjects.length}件の実績
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
@@ -426,6 +355,8 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                 これまでに制作したプロジェクトをご覧いただけます。技術スタック別にフィルタリングも可能です。
               </p>
             </motion.div>
+
+
 
             {/* プロジェクト一覧 */}
             <motion.div 
