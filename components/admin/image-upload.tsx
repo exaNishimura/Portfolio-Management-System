@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, forwardRef } from 'react';
+import { useState, forwardRef, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -23,12 +24,11 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(({
   const [uploading, setUploading] = useState(false);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
 
     // 最大枚数チェック
-    if (images.length + files.length > maxImages) {
+    if (images.length + acceptedFiles.length > maxImages) {
       toast.error(`最大${maxImages}枚まで選択できます`);
       return;
     }
@@ -38,7 +38,7 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(({
     try {
       // 複数ファイルをまとめて送信
       const formData = new FormData();
-      files.forEach(file => {
+      acceptedFiles.forEach(file => {
         formData.append('files', file);
       });
 
@@ -62,12 +62,17 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(({
       toast.error('アップロードに失敗しました');
     } finally {
       setUploading(false);
-      // ファイル入力をリセット
-      if (event.target) {
-        event.target.value = '';
-      }
     }
-  };
+  }, [images, onImagesChange, maxImages]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.avif', '.tiff', '.bmp', '.heif', '.heic']
+    },
+    multiple: true,
+    disabled: disabled || uploading || images.length >= maxImages
+  });
 
   const handleImageDelete = async (index: number) => {
     const imageToRemove = images[index];
@@ -107,44 +112,9 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(({
 
   return (
     <div ref={ref} className="space-y-4">
-      {/* アップロードボタン */}
-      <div className="flex items-center gap-4">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => document.getElementById('image-upload')?.click()}
-          disabled={disabled || uploading || images.length >= maxImages}
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              アップロード中...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              画像を選択
-            </>
-          )}
-        </Button>
-        <span className="text-sm text-muted-foreground">
-          {images.length}/{maxImages}枚選択済み
-        </span>
-      </div>
-
-      <input
-        id="image-upload"
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleFileSelect}
-        className="hidden"
-        disabled={disabled || uploading}
-      />
-
       {/* 画像プレビュー */}
       {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
           {images.map((imageUrl, index) => (
             <Card key={index} className="relative group">
               <CardContent className="p-2">
@@ -181,10 +151,76 @@ export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(({
         </div>
       )}
 
-      {/* 説明テキスト */}
-      <p className="text-sm text-muted-foreground">
-        JPEG、PNG、WebP形式の画像ファイルを最大{maxImages}枚まで選択できます。
-      </p>
+      {/* ドラッグ&ドロップエリア */}
+      {images.length < maxImages && (
+        <Card>
+          <CardContent className="p-6">
+            <div
+              {...getRootProps()}
+              className={`
+                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                ${isDragActive 
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-muted-foreground/25 hover:border-primary/50'
+                }
+                ${uploading ? 'pointer-events-none opacity-50' : ''}
+              `}
+            >
+              <input {...getInputProps()} />
+              
+              <div className="flex flex-col items-center gap-4">
+                {uploading ? (
+                  <Loader2 className="h-12 w-12 text-muted-foreground animate-spin" />
+                ) : (
+                  <Upload className="h-12 w-12 text-muted-foreground" />
+                )}
+                
+                <div className="space-y-2">
+                  <p className="text-lg font-medium">
+                    {uploading 
+                      ? 'アップロード中...' 
+                      : isDragActive 
+                        ? 'ファイルをドロップしてください' 
+                        : '画像をドラッグ&ドロップ'
+                    }
+                  </p>
+                  {!uploading && (
+                    <p className="text-sm text-muted-foreground">
+                      または <span className="text-primary font-medium">クリックして選択</span>
+                    </p>
+                  )}
+                </div>
+
+                {!uploading && (
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP, HEIF, HEIC</p>
+                    <p>最大ファイルサイズ: 10MB（自動的にAVIFに変換されます）</p>
+                    <p>最大{maxImages}枚まで選択可能 (残り{maxImages - images.length}枚)</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {images.length >= maxImages && (
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              最大枚数({maxImages}枚)に達しました。追加するには既存の画像を削除してください。
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 現在の状況表示 */}
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>{images.length}/{maxImages}枚選択済み</span>
+        {images.length > 0 && (
+          <span>ドラッグで並び替え可能</span>
+        )}
+      </div>
     </div>
   );
 });
