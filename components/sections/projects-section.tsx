@@ -242,7 +242,7 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl w-80 min-h-96 pt-6 pb-6 px-6"
+                  className="bg-white/10 dark:bg-black/20 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl w-80 md:w-96 max-h-[70vh] min-h-96 pt-6 pb-6 px-6"
                   style={{ marginBottom: '60px', marginRight: '0px' }}
                 >
                   {/* ヘッダー */}
@@ -256,17 +256,21 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                     {/* 技術スタックフィルター */}
                     <Collapsible open={isTechFilterOpen} onOpenChange={setIsTechFilterOpen}>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 rounded-xl transition-colors backdrop-blur-sm">
-                        <span className="font-medium text-slate-800 dark:text-white">技術スタック</span>
+                        <span className="font-medium text-slate-800 dark:text-white">技術</span>
                         {isTechFilterOpen ? <ChevronUp className="h-4 w-4 text-slate-800 dark:text-white" /> : <ChevronDown className="h-4 w-4 text-slate-800 dark:text-white" />}
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="mt-3 max-h-48 overflow-y-auto">
+                        <div className="mt-3 max-h-64 overflow-y-auto">
                           <div className="flex flex-wrap gap-2">
                             {allTechnologies.map((tech) => (
                               <Badge 
                                 key={tech} 
                                 variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
-                                className="text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5 hover:bg-opacity-80 transition-all duration-200"
+                                className={`text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5 transition-all duration-200 ${
+                                  selectedTechnologies.includes(tech) 
+                                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                                    : "bg-white dark:bg-black text-slate-800 dark:text-white border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900"
+                                }`}
                                 onClick={() => {
                                   handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
                                 }}
