@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,7 +10,8 @@ import {
   Github, 
   MapPin,
   Calendar,
-  Mail
+  Mail,
+  MessageCircle
 } from 'lucide-react';
 import { SkillIcon } from '@/lib/utils/skill-icons';
 import { Profile } from '@/lib/types/database';
@@ -63,6 +65,46 @@ const shimmerVariants = {
 };
 
 export function HeroSection({ profile }: HeroSectionProps) {
+  const [slackStatus, setSlackStatus] = useState({
+    is_active: profile.slack_is_active,
+    status_text: profile.slack_status_text,
+    status_emoji: profile.slack_status_emoji,
+  });
+
+  // Slackステータスを定期的に更新
+  useEffect(() => {
+    if (!profile.slack_user_id) return;
+
+    const updateSlackStatus = async () => {
+      try {
+        // キャッシュ回避のためにタイムスタンプを追加
+        const response = await fetch(`/api/slack/status?t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.slack_connected && data.user) {
+            setSlackStatus({
+              is_active: data.user.is_active,
+              status_text: data.user.status_text,
+              status_emoji: data.user.status_emoji,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Slackステータス更新エラー:', error);
+      }
+    };
+
+    // 初回実行
+    updateSlackStatus();
+
+    // 1分ごとに更新
+    const interval = setInterval(updateSlackStatus, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [profile.slack_user_id]);
+
   return (
     <section className="py-20 px-4 bg-gradient-to-br from-violet-50 via-blue-50 to-cyan-50 dark:from-violet-950/20 dark:via-blue-950/20 dark:to-cyan-950/20">
       <motion.div 
@@ -129,7 +171,29 @@ export function HeroSection({ profile }: HeroSectionProps) {
                 />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-yellowtail bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">{profile.name}</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-3xl md:text-4xl font-yellowtail bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">{profile.name}</h1>
+                  {/* Slackアクティブ状態インジケーター */}
+                  {profile.slack_user_id && (
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-2.5 h-2.5 rounded-full ${slackStatus.is_active ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+                      {profile.slack_workspace_url ? (
+                        <a 
+                          href={profile.slack_workspace_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                        >
+                          {slackStatus.is_active ? 'オンライン' : '離席中'}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
+                          {slackStatus.is_active ? 'オンライン' : '離席中'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <p className="text-lg text-slate-600 dark:text-slate-400 ml-2">{profile.title}</p>
               </div>
             </div>
@@ -159,6 +223,16 @@ export function HeroSection({ profile }: HeroSectionProps) {
               )}
             </div>
             
+            {/* Slackステータス詳細表示（氏名横に移動したため、詳細情報のみ表示） */}
+            {profile.slack_user_id && slackStatus.status_text && (
+              <div className="flex items-center gap-2 p-2 bg-white/30 dark:bg-gray-900/30 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+                <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                  {slackStatus.status_emoji && <span className="text-base">{slackStatus.status_emoji}</span>}
+                  <span>{slackStatus.status_text}</span>
+                </div>
+              </div>
+            )}
+
             {/* SNSリンク */}
             <div className="flex flex-wrap gap-3">
               {profile.github_url && (
@@ -188,6 +262,14 @@ export function HeroSection({ profile }: HeroSectionProps) {
                 <Button variant="outline" size="sm" asChild>
                   <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer">
                     Twitter
+                  </a>
+                </Button>
+              )}
+              {profile.slack_workspace_url && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={profile.slack_workspace_url} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    Slack
                   </a>
                 </Button>
               )}

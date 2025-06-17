@@ -27,6 +27,10 @@ const profileSchema = z.object({
   avatar_url: z.string().url('正しいURLを入力してください').optional().or(z.literal('')),
   skills: z.string().optional(),
   experience_years: z.number().min(0).optional(),
+  // Slack連携フィールド
+  slack_user_id: z.string().optional(),
+  slack_workspace_url: z.string().url('正しいURLを入力してください').optional().or(z.literal('')),
+  slack_display_name: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -59,6 +63,10 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
       avatar_url: initialData?.avatar_url || '',
       skills: initialData?.skills?.join(', ') || '',
       experience_years: initialData?.experience_years || undefined,
+      // Slack連携フィールド
+      slack_user_id: initialData?.slack_user_id || '',
+      slack_workspace_url: initialData?.slack_workspace_url || '',
+      slack_display_name: initialData?.slack_display_name || '',
     },
   });
 
@@ -74,6 +82,10 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         linkedin_url: data.linkedin_url || undefined,
         twitter_url: data.twitter_url || undefined,
         avatar_url: data.avatar_url || undefined,
+        // Slack連携フィールド
+        slack_user_id: data.slack_user_id || undefined,
+        slack_workspace_url: data.slack_workspace_url || undefined,
+        slack_display_name: data.slack_display_name || undefined,
       };
 
       const response = await fetch('/api/admin/profile', {
@@ -236,6 +248,46 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
                 {errors.avatar_url && (
                   <p className="text-sm text-destructive">{errors.avatar_url.message}</p>
                 )}
+              </div>
+            </div>
+          </div>
+
+          {/* Slack連携設定 */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Slack連携設定</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="slack_user_id">SlackユーザーID</Label>
+                <Input
+                  id="slack_user_id"
+                  {...register('slack_user_id')}
+                  placeholder="U1234567890"
+                />
+                <p className="text-xs text-muted-foreground">
+                  SlackのユーザーIDを入力してください（例: U1234567890）
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slack_workspace_url">SlackワークスペースURL</Label>
+                <Input
+                  id="slack_workspace_url"
+                  {...register('slack_workspace_url')}
+                  placeholder="https://yourworkspace.slack.com"
+                />
+                {errors.slack_workspace_url && (
+                  <p className="text-sm text-destructive">{errors.slack_workspace_url.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slack_display_name">Slack表示名</Label>
+                <Input
+                  id="slack_display_name"
+                  {...register('slack_display_name')}
+                  placeholder="山田太郎"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Slackでの表示名（自動取得されますが、手動で設定も可能）
+                </p>
               </div>
             </div>
           </div>

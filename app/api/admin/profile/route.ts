@@ -16,6 +16,10 @@ const profileSchema = z.object({
   avatar_url: z.string().url('正しいURLを入力してください').optional().nullable(),
   skills: z.array(z.string()).default([]),
   experience_years: z.number().min(0).optional().nullable(),
+  // Slack連携フィールド
+  slack_user_id: z.string().optional().nullable(),
+  slack_workspace_url: z.string().url('正しいURLを入力してください').optional().nullable(),
+  slack_display_name: z.string().optional().nullable(),
 });
 
 export async function GET() {

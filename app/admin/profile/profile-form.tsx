@@ -26,6 +26,10 @@ const profileSchema = z.object({
   website_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
   location: z.string().optional(),
   experience_years: z.number().min(0).optional(),
+  // Slack連携フィールド
+  slack_user_id: z.string().optional(),
+  slack_workspace_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
+  slack_display_name: z.string().optional(),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
@@ -43,6 +47,10 @@ interface Profile {
   location?: string | null;
   skills: string[];
   experience_years?: number | null;
+  // Slack連携フィールド
+  slack_user_id?: string | null;
+  slack_workspace_url?: string | null;
+  slack_display_name?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -67,6 +75,10 @@ export default function ProfileForm() {
       website_url: '',
       location: '',
       experience_years: 0,
+      // Slack連携フィールド
+      slack_user_id: '',
+      slack_workspace_url: '',
+      slack_display_name: '',
     },
   });
 
@@ -98,6 +110,10 @@ export default function ProfileForm() {
           website_url: profileData.website || '',
           location: profileData.location || '',
           experience_years: profileData.experience_years || 0,
+          // Slack連携フィールド
+          slack_user_id: profileData.slack_user_id || '',
+          slack_workspace_url: profileData.slack_workspace_url || '',
+          slack_display_name: profileData.slack_display_name || '',
         };
         
         console.log('Setting form data:', formData);
@@ -148,6 +164,10 @@ export default function ProfileForm() {
       location: currentValues.location && currentValues.location.trim() !== '' ? currentValues.location : null,
       skills: skills,
       experience_years: currentValues.experience_years || null,
+      // Slack連携フィールド
+      slack_user_id: currentValues.slack_user_id && currentValues.slack_user_id.trim() !== '' ? currentValues.slack_user_id : null,
+      slack_workspace_url: currentValues.slack_workspace_url && currentValues.slack_workspace_url.trim() !== '' ? currentValues.slack_workspace_url : null,
+      slack_display_name: currentValues.slack_display_name && currentValues.slack_display_name.trim() !== '' ? currentValues.slack_display_name : null,
     };
 
     try {
@@ -191,6 +211,10 @@ export default function ProfileForm() {
         location: data.location && data.location.trim() !== '' ? data.location : null,
         skills: skills,
         experience_years: data.experience_years || null,
+        // Slack連携フィールド
+        slack_user_id: data.slack_user_id && data.slack_user_id.trim() !== '' ? data.slack_user_id : null,
+        slack_workspace_url: data.slack_workspace_url && data.slack_workspace_url.trim() !== '' ? data.slack_workspace_url : null,
+        slack_display_name: data.slack_display_name && data.slack_display_name.trim() !== '' ? data.slack_display_name : null,
       };
 
       // デバッグ用ログ
@@ -430,6 +454,69 @@ export default function ProfileForm() {
                   </FormItem>
                 )}
               />
+
+              {/* Slack連携設定 */}
+              <div className="space-y-4 border-t pt-6">
+                <div>
+                  <h3 className="text-lg font-semibold">Slack連携設定</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Slackとの連携を設定すると、ヒーローセクションにリアルタイムのSlackステータスが表示されます。
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="slack_user_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SlackユーザーID</FormLabel>
+                        <FormControl>
+                          <Input placeholder="U1234567890" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          SlackのユーザーIDを入力してください（例: U1234567890）
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="slack_workspace_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>SlackワークスペースURL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://yourworkspace.slack.com" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Slackワークスペースの招待URLを入力してください
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="slack_display_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Slack表示名</FormLabel>
+                      <FormControl>
+                        <Input placeholder="山田太郎" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Slackでの表示名（自動取得されますが、手動で設定も可能）
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* スキル */}
               <div className="space-y-4">

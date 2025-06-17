@@ -35,6 +35,15 @@ export interface Profile {
   avatar_url: string | null;
   skills: string[];
   experience_years: number | null;
+  // Slack連携フィールド
+  slack_user_id: string | null;
+  slack_workspace_url: string | null;
+  slack_display_name: string | null;
+  slack_status_text: string | null;
+  slack_status_emoji: string | null;
+  slack_is_active: boolean | null;
+  slack_last_activity: string | null;
+  slack_webhook_url: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -73,6 +82,15 @@ export interface ProfileFormData {
   avatar_url?: string | null;
   skills: string[];
   experience_years?: number | null;
+  // Slack連携フィールド
+  slack_user_id?: string | null;
+  slack_workspace_url?: string | null;
+  slack_display_name?: string | null;
+  slack_status_text?: string | null;
+  slack_status_emoji?: string | null;
+  slack_is_active?: boolean | null;
+  slack_last_activity?: string | null;
+  slack_webhook_url?: string | null;
 }
 
  
