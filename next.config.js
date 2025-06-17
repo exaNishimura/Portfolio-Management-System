@@ -13,7 +13,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'cxvxovkxirsfpzsvcwrh.supabase.co',
+        hostname: process.env.NEXT_PUBLIC_SUPABASE_URL?.replace('https://', '') || 'your-project.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
