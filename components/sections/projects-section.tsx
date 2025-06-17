@@ -408,7 +408,7 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
       </AnimatePresence>
 
       {/* プロジェクト一覧セクション */}
-      <section id="projects-section" className="py-20 px-4">
+      <section id="projects-section" className="py-20 px-4 bg-gradient-to-br from-violet-50/30 via-blue-50/20 to-cyan-50/30 dark:from-violet-950/10 dark:via-blue-950/5 dark:to-cyan-950/10">
         <div className="container mx-auto max-w-7xl">
           <motion.div
             initial="hidden"
@@ -417,8 +417,12 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
             variants={containerVariants}
           >
             <motion.div variants={itemVariants} className="text-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold mb-4">実績一覧</h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+              <div className="flex items-center justify-center gap-6 mb-4">
+                <div className="flex-1 h-px bg-black dark:bg-white opacity-30 max-w-20"></div>
+                <h2 className="text-xl md:text-2xl font-bold text-black dark:text-white drop-shadow-sm">Projects Portfolio</h2>
+                <div className="flex-1 h-px bg-black dark:bg-white opacity-30 max-w-20"></div>
+              </div>
+              <p className="text-base text-slate-700 dark:text-slate-300 mx-auto">
                 これまでに制作したプロジェクトをご覧いただけます。技術スタック別にフィルタリングも可能です。
               </p>
             </motion.div>
@@ -437,7 +441,7 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                   ))}
                 </div>
               ) : filteredAndSortedProjects.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
+                <div className="text-center py-12 text-slate-600 dark:text-slate-400">
                   条件に一致する実績がありません
                 </div>
               ) : (

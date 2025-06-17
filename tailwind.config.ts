@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         'pacifico': ['var(--font-pacifico)', 'cursive'],
+        'yellowtail': ['var(--font-yellowtail)', 'cursive'],
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

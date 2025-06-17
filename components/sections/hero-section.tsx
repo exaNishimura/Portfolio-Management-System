@@ -75,7 +75,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
                 />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">{profile.name}</h1>
+                <h1 className="text-3xl md:text-4xl font-yellowtail bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">{profile.name}</h1>
                 <p className="text-lg text-slate-600 dark:text-slate-400">{profile.title}</p>
               </div>
             </div>
@@ -142,8 +142,9 @@ export function HeroSection({ profile }: HeroSectionProps) {
 
           {/* 右側: スキル情報 */}
           <motion.div variants={itemVariants} className="space-y-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 dark:from-violet-400 dark:to-blue-400 bg-clip-text text-transparent">Core Skills</h2>
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-xl font-bold text-black dark:text-white">Core Skills</h2>
+              <div className="flex-1 h-px bg-black dark:bg-white opacity-30 max-w-20"></div>
             </div>
             
                           <div className="flex flex-wrap gap-3">
