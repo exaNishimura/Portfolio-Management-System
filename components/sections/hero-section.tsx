@@ -76,7 +76,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
               </div>
               <div>
                 <h1 className="text-3xl md:text-4xl font-yellowtail bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">{profile.name}</h1>
-                <p className="text-lg text-slate-600 dark:text-slate-400">{profile.title}</p>
+                <p className="text-lg text-slate-600 dark:text-slate-400 ml-2">{profile.title}</p>
               </div>
             </div>
             
