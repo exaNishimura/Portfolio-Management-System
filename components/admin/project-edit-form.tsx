@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Project } from '@/lib/types/database';
-import ImageUpload from './image-upload';
+import { ImageUpload } from './image-upload';
 import MarkdownEditor from './markdown-editor';
 
 const formSchema = z.object({

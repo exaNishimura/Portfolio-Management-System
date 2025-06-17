@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -14,12 +14,12 @@ interface ImageUploadProps {
   disabled?: boolean;
 }
 
-export function ImageUpload({ 
+export const ImageUpload = forwardRef<HTMLDivElement, ImageUploadProps>(({ 
   images, 
   onImagesChange, 
   maxImages = 5, 
   disabled = false 
-}: ImageUploadProps) {
+}, ref) => {
   const [uploading, setUploading] = useState(false);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
@@ -36,24 +36,25 @@ export function ImageUpload({
     setUploading(true);
 
     try {
-      const uploadPromises = files.map(async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const response = await fetch('/api/admin/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('アップロードに失敗しました');
-        }
-
-        const data = await response.json();
-        return data.url;
+      // 複数ファイルをまとめて送信
+      const formData = new FormData();
+      files.forEach(file => {
+        formData.append('files', file);
       });
 
-      const uploadedUrls = await Promise.all(uploadPromises);
+      const response = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'アップロードに失敗しました');
+      }
+
+      const data = await response.json();
+      const uploadedUrls = data.files || [];
+      
       onImagesChange([...images, ...uploadedUrls]);
       toast.success(`${uploadedUrls.length}枚の画像をアップロードしました`);
     } catch (error) {
@@ -105,7 +106,7 @@ export function ImageUpload({
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={ref} className="space-y-4">
       {/* アップロードボタン */}
       <div className="flex items-center gap-4">
         <Button
@@ -186,4 +187,6 @@ export function ImageUpload({
       </p>
     </div>
   );
-} 
+});
+
+ImageUpload.displayName = 'ImageUpload'; 
