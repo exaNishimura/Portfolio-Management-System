@@ -1,6 +1,14 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// 環境変数のチェック
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const isEmailEnabled = !!RESEND_API_KEY;
+
+// Resendインスタンスの作成（APIキーがある場合のみ）
+let resend: Resend | null = null;
+if (isEmailEnabled) {
+  resend = new Resend(RESEND_API_KEY);
+}
 
 export interface ContactEmailData {
   name: string;
@@ -10,6 +18,15 @@ export interface ContactEmailData {
 
 export async function sendContactEmail(data: ContactEmailData) {
   const { name, email, message } = data;
+  
+  // メール機能が無効な場合
+  if (!isEmailEnabled || !resend) {
+    console.warn('メール機能が無効です: RESEND_API_KEY環境変数が設定されていません');
+    return { 
+      success: false, 
+      error: 'メール機能が設定されていません。管理者に直接ご連絡ください。' 
+    };
+  }
   
   try {
     const result = await resend.emails.send({
@@ -93,4 +110,9 @@ ${message}
       error: error instanceof Error ? error.message : 'メール送信に失敗しました' 
     };
   }
+}
+
+// メール機能の状態をチェックする関数
+export function isEmailConfigured(): boolean {
+  return isEmailEnabled;
 } 
