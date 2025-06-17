@@ -9,8 +9,7 @@ import {
   Github, 
   MapPin,
   Calendar,
-  Mail,
-  Sparkles
+  Mail
 } from 'lucide-react';
 import { SkillIcon } from '@/lib/utils/skill-icons';
 import { Profile } from '@/lib/types/database';
@@ -41,13 +40,24 @@ const itemVariants = {
   }
 };
 
-const skillVariants = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
+
+
+// キラキラエフェクトのアニメーション設定
+const shimmerVariants = {
+  initial: {
+    x: '-150%',
+    y: '-150%',
+    opacity: 0
+  },
+  animate: {
+    x: '150%',
+    y: '150%',
+    opacity: [0, 0.8, 0],
     transition: {
-      duration: 0.4
+      duration: 2,
+      ease: 'linear' as const,
+      repeat: Infinity,
+      repeatDelay: 3
     }
   }
 };
@@ -72,6 +82,50 @@ export function HeroSection({ profile }: HeroSectionProps) {
                   alt={profile.name}
                   fill
                   className="object-cover"
+                />
+                {/* キラキラエフェクト - 斜め光 */}
+                <motion.div
+                  className="absolute inset-0 [--shimmer-opacity:1] dark:[--shimmer-opacity:0.5]"
+                  style={{
+                    background: 'linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%)',
+                    transform: 'rotate(-45deg)',
+                    width: '200%',
+                    height: '200%',
+                    top: '-50%',
+                    left: '-50%',
+                    filter: 'blur(1px)',
+                    opacity: 'var(--shimmer-opacity, 1)'
+                  }}
+                  variants={shimmerVariants}
+                  initial="initial"
+                  animate="animate"
+                />
+                {/* 追加のキラキラ効果 */}
+                <motion.div
+                  className="absolute top-2 right-2 w-2 h-2 bg-white/60 dark:bg-white/40 rounded-full"
+                  animate={{
+                    scale: [0, 1, 0],
+                    opacity: [0, 1, 0]
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    repeatDelay: 4,
+                    delay: 1
+                  }}
+                />
+                <motion.div
+                  className="absolute bottom-3 left-3 w-1.5 h-1.5 bg-white/50 dark:bg-white/30 rounded-full"
+                  animate={{
+                    scale: [0, 1, 0],
+                    opacity: [0, 1, 0]
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    repeatDelay: 5,
+                    delay: 2.5
+                  }}
                 />
               </div>
               <div>
