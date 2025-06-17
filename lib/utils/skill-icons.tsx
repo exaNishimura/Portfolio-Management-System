@@ -508,16 +508,10 @@ interface SkillIconProps {
   skill: string;
   size?: number;
   className?: string;
-  debug?: boolean; // デバッグ情報をコンソールに出力
 }
 
-export function SkillIcon({ skill, size = 16, className = '', debug = false }: SkillIconProps) {
+export function SkillIcon({ skill, size = 16, className = '' }: SkillIconProps) {
   const IconComponent = getSkillIcon(skill);
-  
-  if (debug) {
-    const searchInfo = getSkillSearchInfo(skill);
-    console.log(`スキル検索情報 - ${skill}:`, searchInfo);
-  }
   
   return (
     <IconComponent 

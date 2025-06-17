@@ -61,10 +61,6 @@ async function ProjectsData() {
   
   const allProjects: Project[] = allProjectsRaw ?? [];
 
-  console.log('Server - profile:', profile?.name);
-  console.log('Server - featuredProjects:', featuredProjects.length);
-  console.log('Server - allProjects:', allProjects.length);
-
   return (
     <HomeClientNew 
       profile={profile}

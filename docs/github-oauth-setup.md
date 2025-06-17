@@ -16,7 +16,7 @@
 - **Application name**: `Portfolio Site Admin`
 - **Homepage URL**: `http://localhost:3000` (開発環境) / `https://your-domain.com` (本番環境)
 - **Application description**: `Portfolio site admin authentication`
-- **Authorization callback URL**: `https://cxvxovkxirsfpzsvcwrh.supabase.co/auth/v1/callback`
+- **Authorization callback URL**: `https://your-project.supabase.co/auth/v1/callback`
 
 ### 1.3 OAuth認証情報の取得
 1. 「Register application」をクリック

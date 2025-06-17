@@ -174,14 +174,14 @@ export default function AdminLoginPage() {
               
               <div className="pt-2 border-t">
                 <p className="font-medium">GitHub OAuth設定:</p>
-                <p>• Callback URL: https://cxvxovkxirsfpzsvcwrh.supabase.co/auth/v1/callback</p>
+                <p>• Callback URL: {process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/callback</p>
                 <p>• 詳細手順: docs/github-oauth-setup.md</p>
               </div>
               
               <div className="pt-2 border-t">
                 <p className="font-medium">管理者設定:</p>
                 <p>• 環境変数 ADMIN_EMAILS で管理者を指定</p>
-                <p>• 現在の管理者: {process.env.NEXT_PUBLIC_ADMIN_EMAILS || 'exasolcojp@gmail.com'}</p>
+                <p>• 現在の管理者: {process.env.NEXT_PUBLIC_ADMIN_EMAILS || 'admin@example.com'}</p>
               </div>
             </CardContent>
           </Card>

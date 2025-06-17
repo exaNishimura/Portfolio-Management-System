@@ -1,97 +1,84 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { X, Upload, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 
 interface ImageUploadProps {
   images: string[];
   onImagesChange: (images: string[]) => void;
   maxImages?: number;
-  className?: string;
+  disabled?: boolean;
 }
 
-export default function ImageUpload({ 
+export function ImageUpload({ 
   images, 
   onImagesChange, 
-  maxImages = 10,
-  className 
+  maxImages = 5, 
+  disabled = false 
 }: ImageUploadProps) {
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (images.length + acceptedFiles.length > maxImages) {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // 最大枚数チェック
+    if (images.length + files.length > maxImages) {
       toast.error(`最大${maxImages}枚まで選択できます`);
       return;
     }
 
-    setIsUploading(true);
+    setUploading(true);
+
     try {
-      const formData = new FormData();
-      acceptedFiles.forEach(file => {
-        formData.append('files', file);
-      });
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
 
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        const response = await fetch('/api/admin/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'アップロードに失敗しました');
-      }
-
-      const data = await response.json();
-      const newImages = [...images, ...data.files];
-      onImagesChange(newImages);
-      
-      // 変換統計を含むメッセージを表示
-      let message = data.message;
-      if (data.conversionStats && data.conversionStats.convertedToAVIF > 0) {
-        message += `\n${data.conversionStats.convertedToAVIF}個の画像をAVIFに変換しました`;
-        if (data.conversionStats.totalCompressionRatio) {
-          message += `（${data.conversionStats.totalCompressionRatio} 削減）`;
+        if (!response.ok) {
+          throw new Error('アップロードに失敗しました');
         }
-      }
-      
-      toast.success(message);
+
+        const data = await response.json();
+        return data.url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      onImagesChange([...images, ...uploadedUrls]);
+      toast.success(`${uploadedUrls.length}枚の画像をアップロードしました`);
     } catch (error) {
-      console.error('アップロードエラー:', error);
-      toast.error(error instanceof Error ? error.message : 'アップロードに失敗しました');
+      console.error('Upload error:', error);
+      toast.error('アップロードに失敗しました');
     } finally {
-      setIsUploading(false);
+      setUploading(false);
+      // ファイル入力をリセット
+      if (event.target) {
+        event.target.value = '';
+      }
     }
-  }, [images, onImagesChange, maxImages]);
+  };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp', '.avif', '.tiff', '.bmp', '.heif', '.heic']
-    },
-    multiple: true,
-    disabled: isUploading || images.length >= maxImages
-  });
+  const handleImageDelete = async (index: number) => {
+    const imageToRemove = images[index];
+    if (!imageToRemove) return;
 
-  const removeImage = async (indexToRemove: number) => {
-    const imageToRemove = images[indexToRemove];
-    
-    if (!confirm('画像を削除しますか？この操作は取り消せません。')) {
+    if (!confirm('この画像を削除しますか？')) {
       return;
     }
-    
-    setDeletingIndex(indexToRemove);
-    
-    // API経由で削除処理を実行（sharpライブラリの使用を避ける）
+
+    setDeletingIndex(index);
+
     try {
-      console.log('削除開始:', { indexToRemove, imageToRemove });
-      
       const response = await fetch('/api/admin/upload/delete', {
         method: 'DELETE',
         headers: {
@@ -100,143 +87,103 @@ export default function ImageUpload({
         body: JSON.stringify({ imageUrl: imageToRemove }),
       });
 
-      console.log('削除API レスポンス:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('削除API エラーレスポンス:', errorData);
-        throw new Error(errorData.error || '画像の削除に失敗しました');
+        throw new Error(errorData.error || '削除に失敗しました');
       }
 
-      const responseData = await response.json();
-      console.log('削除API 成功レスポンス:', responseData);
-
-      // API成功時のみローカルの状態から削除
-      const newImages = images.filter((_, index) => index !== indexToRemove);
+      // 画像リストから削除
+      const newImages = images.filter((_, i) => i !== index);
       onImagesChange(newImages);
       toast.success('画像を削除しました');
     } catch (error) {
-      console.error('画像削除エラー:', error);
-      toast.error(error instanceof Error ? error.message : '画像の削除に失敗しました');
-      // エラーの場合はローカル状態を変更しない
+      console.error('Delete error:', error);
+      toast.error('削除に失敗しました');
     } finally {
       setDeletingIndex(null);
     }
   };
 
   return (
-    <div className={className}>
-      {/* アップロード済み画像の表示 */}
+    <div className="space-y-4">
+      {/* アップロードボタン */}
+      <div className="flex items-center gap-4">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => document.getElementById('image-upload')?.click()}
+          disabled={disabled || uploading || images.length >= maxImages}
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              アップロード中...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4 mr-2" />
+              画像を選択
+            </>
+          )}
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          {images.length}/{maxImages}枚選択済み
+        </span>
+      </div>
+
+      <input
+        id="image-upload"
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={disabled || uploading}
+      />
+
+      {/* 画像プレビュー */}
       {images.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <ImageIcon className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              アップロード済み画像 ({images.length}/{maxImages})
-            </span>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((imageUrl, index) => (
-              <Card key={index} className="relative group">
-                <CardContent className="p-2">
-                  <div className="relative aspect-square">
-                    <Image
-                      src={imageUrl}
-                      alt={`アップロード画像 ${index + 1}`}
-                      fill
-                      className="object-cover rounded-md"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                    />
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeImage(index)}
-                      disabled={deletingIndex === index}
-                    >
-                      {deletingIndex === index ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <X className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </div>
-                  <Badge variant="secondary" className="mt-1 text-xs">
-                    {index + 1}
-                  </Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {images.map((imageUrl, index) => (
+            <Card key={index} className="relative group">
+              <CardContent className="p-2">
+                <div className="aspect-square relative rounded-lg overflow-hidden bg-muted">
+                  <Image
+                    src={imageUrl}
+                    alt={`プロジェクト画像 ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
+                  {!disabled && (
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleImageDelete(index)}
+                        disabled={deletingIndex === index}
+                        className="h-8 w-8 p-0"
+                      >
+                        {deletingIndex === index ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
-      {/* ドラッグ&ドロップエリア */}
-      {images.length < maxImages && (
-        <Card>
-          <CardContent className="p-6">
-            <div
-              {...getRootProps()}
-              className={`
-                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                ${isDragActive 
-                  ? 'border-primary bg-primary/5' 
-                  : 'border-muted-foreground/25 hover:border-primary/50'
-                }
-                ${isUploading ? 'pointer-events-none opacity-50' : ''}
-              `}
-            >
-              <input {...getInputProps()} />
-              
-              <div className="flex flex-col items-center gap-4">
-                {isUploading ? (
-                  <Loader2 className="h-12 w-12 text-muted-foreground animate-spin" />
-                ) : (
-                  <Upload className="h-12 w-12 text-muted-foreground" />
-                )}
-                
-                <div className="space-y-2">
-                  <p className="text-lg font-medium">
-                    {isUploading 
-                      ? 'アップロード中...' 
-                      : isDragActive 
-                        ? 'ファイルをドロップしてください' 
-                        : '画像をドラッグ&ドロップ'
-                    }
-                  </p>
-                  {!isUploading && (
-                    <p className="text-sm text-muted-foreground">
-                      または <span className="text-primary font-medium">クリックして選択</span>
-                    </p>
-                  )}
-                </div>
-
-                {!isUploading && (
-                  <div className="text-xs text-muted-foreground space-y-1">
-                    <p>対応形式: JPEG, PNG, GIF, WebP, AVIF, TIFF, BMP, HEIF, HEIC</p>
-                    <p>最大ファイルサイズ: 10MB（自動的にAVIFに変換されます）</p>
-                    <p>最大{maxImages}枚まで選択可能 (残り{maxImages - images.length}枚)</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {images.length >= maxImages && (
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              最大枚数({maxImages}枚)に達しました。追加するには既存の画像を削除してください。
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {/* 説明テキスト */}
+      <p className="text-sm text-muted-foreground">
+        JPEG、PNG、WebP形式の画像ファイルを最大{maxImages}枚まで選択できます。
+      </p>
     </div>
   );
 } 

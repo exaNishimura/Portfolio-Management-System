@@ -35,7 +35,7 @@
 ### 3.1 .env.local ファイルの更新
 ```bash
 # メール設定
-RESEND_API_KEY=re_NWiQbVaW_dJUR4ASvu8Q1NMkhBe7LXuxb
+RESEND_API_KEY=re_your_api_key_here
 CONTACT_EMAIL_TO=your-email@gmail.com
 CONTACT_EMAIL_FROM=noreply@yourdomain.com
 ```

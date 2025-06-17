@@ -13,8 +13,8 @@ interface ImageUploadProps {
   onChange: (url: string | undefined) => void;
   disabled?: boolean;
   className?: string;
-  onDeleteSuccess?: () => void; // 削除成功時のコールバック
-  updateDatabase?: boolean; // データベース更新フラグ
+  onDeleteSuccess?: () => void;
+  updateDatabase?: boolean;
 }
 
 export function ImageUpload({ value, onChange, disabled, className, onDeleteSuccess, updateDatabase }: ImageUploadProps) {
@@ -23,15 +23,12 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
   const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // valueが変更されたときの処理
   useEffect(() => {
-    console.log('ImageUpload value changed:', value);
     if (value && value.trim() !== '') {
       setImageError(false);
     }
   }, [value]);
 
-  // 開発環境でストレージ権限をテスト
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       testStoragePermissions();
@@ -59,7 +56,6 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
       toast.error('アップロード中にエラーが発生しました');
     } finally {
       setIsUploading(false);
-      // ファイル入力をリセット
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -68,39 +64,26 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
 
   const handleDelete = async () => {
     if (!value) {
-      console.log('Delete cancelled: no value');
       return;
     }
-
-    console.log('Delete confirmation for URL:', value);
     
     if (!confirm('画像を削除しますか？この操作は取り消せません。')) {
-      console.log('Delete cancelled by user');
       return;
     }
 
-    console.log('Starting delete process...');
     setIsDeleting(true);
     
     try {
-      console.log('Calling deleteProfileImage with URL:', value);
       const success = await deleteProfileImage(value);
-      console.log('Delete result:', success);
       
       if (success) {
-        console.log('Delete successful, updating form...');
-        
-        // 画像キャッシュをクリア
         clearImageCache(value);
         
-        // フォーム状態を強制的にクリア
         onChange(undefined);
-        onChange(''); // 空文字列も設定
-        onChange(undefined); // 再度undefinedを設定
+        onChange('');
+        onChange(undefined);
         
-        // データベースも更新（オプション）
         if (updateDatabase) {
-          console.log('Updating database...');
           const dbUpdateSuccess = await updateProfileInDatabase();
           if (!dbUpdateSuccess) {
             console.warn('Database update failed, but storage deletion was successful');
@@ -110,22 +93,18 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
         toast.success('画像を削除しました');
         setImageError(false);
         
-        // 削除成功時のコールバックを実行
         if (onDeleteSuccess) {
-          console.log('Calling onDeleteSuccess callback...');
           setTimeout(() => {
             onDeleteSuccess();
-          }, 100); // 少し遅延させて確実に実行
+          }, 100);
         }
       } else {
-        console.log('Delete failed');
         toast.error('画像の削除に失敗しました');
       }
     } catch (error) {
       console.error('Delete error:', error);
       toast.error('削除中にエラーが発生しました');
     } finally {
-      console.log('Delete process completed');
       setIsDeleting(false);
     }
   };
@@ -135,27 +114,21 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
   };
 
   const handleImageError = () => {
-    console.error('Next.js Image component failed to load:', value);
     setImageError(true);
   };
 
   const handleImageLoad = () => {
-    console.log('Next.js Image component loaded successfully:', value);
     setImageError(false);
   };
 
-  // 画像URLが有効かどうかをチェック
   const hasValidImageUrl = value && value.trim() !== '';
 
   const clearImageCache = (imageUrl: string) => {
     try {
-      // Next.js Image コンポーネントのキャッシュをクリア
       if (typeof window !== 'undefined') {
-        // ブラウザキャッシュから画像を削除
         const img = document.createElement('img');
         img.src = imageUrl + '?cache-bust=' + Date.now();
         
-        // Service Worker のキャッシュもクリア（存在する場合）
         if ('serviceWorker' in navigator && 'caches' in window) {
           caches.keys().then(cacheNames => {
             cacheNames.forEach(cacheName => {
@@ -173,15 +146,13 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
 
   const updateProfileInDatabase = async () => {
     try {
-      console.log('Updating profile in database to remove avatar_url...');
-      
       const response = await fetch('/api/admin/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          avatar_url: null // avatar_urlをnullに設定
+          avatar_url: null
         }),
       });
 
@@ -191,7 +162,6 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
         return false;
       }
 
-      console.log('Database updated successfully');
       return true;
     } catch (error) {
       console.error('Database update error:', error);
@@ -203,25 +173,8 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
     <div className={className}>
       <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" onChange={handleFileSelect} className="hidden" disabled={disabled || isUploading} />
 
-      {/* デバッグ情報 */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
-          <p className="font-semibold">Debug Info:</p>
-          <p>Value: {value || "undefined"}</p>
-          <p>Value Length: {value ? value.length : 0}</p>
-          <p>Has Valid URL: {hasValidImageUrl ? "true" : "false"}</p>
-          <p>Image Error: {imageError ? "true" : "false"}</p>
-          <p>Is Deleting: {isDeleting ? "true" : "false"}</p>
-          <p>Card Classes: "relative w-48 h-48 mx-auto group"</p>
-          <p>CardContent Classes: "p-0 h-full"</p>
-          <p>Inner Div Classes: "relative w-full h-full rounded-lg overflow-hidden bg-muted"</p>
-          <p>Replace Button Classes: "h-8 w-8 p-0 bg-background/90 hover:bg-background border shadow-lg"</p>
-        </div>
-      )}
-
       {hasValidImageUrl ? (
         <div className="space-y-4">
-          {/* 画像プレビュー */}
           <Card className="relative w-48 h-48 mx-auto group">
             <CardContent className="p-0 h-full">
               <div className="relative w-full h-full rounded-lg overflow-hidden bg-muted">
@@ -237,30 +190,14 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
                     </div>
                   </div>
                 ) : (
-                  <>
-                    {/* Next.js Image with fill - primary approach */}
-                    <Image src={value} alt="プロフィール画像" fill className="object-cover" sizes="192px" onError={handleImageError} onLoad={handleImageLoad} priority />
-                    {/* Fallback: regular img tag with explicit dimensions */}
-                    {/* Uncomment if fill approach doesn't work:
-                    <img
-                      src={value}
-                      alt="プロフィール画像"
-                      className="w-full h-full object-cover"
-                      onError={handleImageError}
-                      onLoad={handleImageLoad}
-                    />
-                    */}
-                  </>
+                  <Image src={value} alt="プロフィール画像" fill className="object-cover" sizes="192px" onError={handleImageError} onLoad={handleImageLoad} priority />
                 )}
 
-                {/* 画像上のオーバーレイボタン */}
                 {!disabled && !imageError && (
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    {/* 差し替えボタン */}
                      <Button type="button" variant="secondary" size="sm" onClick={handleUploadClick} disabled={isUploading || isDeleting} className="h-8 w-8 p-0 bg-background/90 hover:bg-background border shadow-lg" title="画像を差し替え">
                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                      </Button>
-                    {/* 削除ボタン */}
                     <Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting || isUploading} className="h-8 w-8 p-0 shadow-lg" title="画像を削除">
                       {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                     </Button>
@@ -270,7 +207,6 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
             </CardContent>
           </Card>
 
-          {/* 画像情報 */}
           <div className="text-center space-y-1">
             <p className="text-sm text-muted-foreground">
               {imageError ? "画像読み込みエラー" : "アップロード済み画像"}：

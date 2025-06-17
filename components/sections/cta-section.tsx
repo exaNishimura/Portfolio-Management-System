@@ -37,9 +37,13 @@ export function CTASection() {
         variants={containerVariants}
       >
         <motion.div variants={itemVariants}>
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">
-            プロジェクトのご相談はお気軽に
-          </h2>
+          <div className="flex items-center justify-center gap-6 mb-4">
+            <div className="flex-1 h-px bg-black dark:bg-white opacity-30 max-w-20"></div>
+            <h2 className="text-xl md:text-2xl font-bold text-black dark:text-white drop-shadow-sm">
+              プロジェクトのご相談はお気軽に
+            </h2>
+            <div className="flex-1 h-px bg-black dark:bg-white opacity-30 max-w-20"></div>
+          </div>
           <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto">
             Webサイト制作やアプリケーション開発に関するご相談を承っております。
             お気軽にお問い合わせください。

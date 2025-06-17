@@ -85,11 +85,9 @@ export default function ProfileForm() {
   // プロフィールデータを読み込み
   const loadProfile = async () => {
     try {
-      console.log('Loading profile data...');
       const response = await fetch('/api/admin/profile');
       if (response.ok) {
         const profileData = await response.json();
-        console.log('Profile data loaded:', profileData);
         setProfile(profileData);
         
         // スキルデータの処理（text[]型に対応）
@@ -116,20 +114,10 @@ export default function ProfileForm() {
           slack_display_name: profileData.slack_display_name || '',
         };
         
-        console.log('Setting form data:', formData);
-        console.log('Image URL being set:', formData.image_url);
-        
         form.reset(formData);
-        
-        // 画像URLが設定されているか確認
-        setTimeout(() => {
-          const currentImageUrl = form.getValues('image_url');
-          console.log('Current form image_url value:', currentImageUrl);
-        }, 100);
         
       } else if (response.status === 404) {
         // プロフィールが存在しない場合は空のフォームを表示
-        console.log('プロフィールが見つかりません。新規作成モードです。');
       }
     } catch (error) {
       console.error('プロフィール読み込みエラー:', error);
@@ -145,7 +133,6 @@ export default function ProfileForm() {
 
   // 画像削除後の再読み込み処理
   const handleImageDeleteSuccess = async () => {
-    console.log('Image deleted successfully, saving profile to update database...');
     
     // フォームの現在の値を取得
     const currentValues = form.getValues();
@@ -180,12 +167,10 @@ export default function ProfileForm() {
       });
 
       if (response.ok) {
-        console.log('Profile updated in database successfully');
         // プロフィールを再読み込み
         setIsLoadingData(true);
         await loadProfile();
       } else {
-        console.error('Failed to update profile in database');
         toast.error('データベースの更新に失敗しました');
       }
     } catch (error) {
@@ -217,9 +202,6 @@ export default function ProfileForm() {
         slack_display_name: data.slack_display_name && data.slack_display_name.trim() !== '' ? data.slack_display_name : null,
       };
 
-      // デバッグ用ログ
-      console.log('Sending profile data:', profileData);
-      
       // APIルートを呼び出し
       const response = await fetch('/api/admin/profile', {
         method: 'POST',
@@ -235,7 +217,6 @@ export default function ProfileForm() {
       }
 
       const savedProfile = await response.json();
-      console.log('Profile saved:', savedProfile);
       
       toast.success('プロフィールを更新しました');
       

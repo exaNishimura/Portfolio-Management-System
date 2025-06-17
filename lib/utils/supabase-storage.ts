@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/client';
-import { createAdminClient } from './supabase-admin';
-import { convertToAVIF, validateImageFormat, getImageInfo, formatFileSize, calculateCompressionRatio } from './image-converter';
+import { convertToAVIF } from './image-converter';
 
 const BUCKET_NAME = 'project-images';
 
@@ -14,53 +13,57 @@ export interface UploadResult {
   compressionRatio?: number;
 }
 
+// ファイルサイズをフォーマットする関数
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// 圧縮率を計算する関数
+function calculateCompressionRatio(originalSize: number, compressedSize: number): number {
+  return Math.round(((originalSize - compressedSize) / originalSize) * 100);
+}
+
 export async function uploadImageToSupabase(
   file: File,
   folder: string = 'projects'
 ): Promise<UploadResult> {
   const supabase = createClient();
+  await ensureBucketExists();
+
+  // ファイル情報を取得
+  const originalFormat = file.type.split('/')[1];
+  const originalSize = file.size;
   
   // ファイルをBufferに変換
   const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer as ArrayBuffer);
+  const buffer = Buffer.from(arrayBuffer);
   
-  // 画像形式を検証
-  const { format: originalFormat, isSupported } = await validateImageFormat(buffer);
-  
-  if (!isSupported) {
-    throw new Error(`サポートされていない画像形式です: ${originalFormat}`);
-  }
+  let finalBuffer = buffer;
+  let finalFormat = originalFormat;
+  let convertedSize = originalSize;
+  let compressionRatio = 0;
 
-  // 画像情報を取得
-  const originalInfo = await getImageInfo(buffer);
-  const originalSize = buffer.length;
-
-      let finalBuffer: Buffer = buffer;
-    let finalFormat = originalFormat;
-    let convertedSize = originalSize;
-    let compressionRatio = 0;
-
-    // AVIF以外の形式の場合、AVIFに変換
-    if (originalFormat !== 'avif') {
-      try {
-        console.log(`画像を${originalFormat}からAVIFに変換中...`);
-        const conversionResult = await convertToAVIF(buffer, {
-          quality: 80,
-          maxWidth: 1920,
-          maxHeight: 1080
-        });
-        
-        finalBuffer = Buffer.from(conversionResult.buffer);
-        finalFormat = 'avif';
-        convertedSize = conversionResult.convertedSize;
-        compressionRatio = calculateCompressionRatio(originalSize, convertedSize);
-        
-        console.log(`変換完了: ${formatFileSize(originalSize)} → ${formatFileSize(convertedSize)} (${compressionRatio}% 削減)`);
-      } catch (conversionError) {
-        console.warn('AVIF変換に失敗、元の形式でアップロード:', conversionError);
-        // 変換に失敗した場合は元の画像をそのまま使用
-      }
+  // AVIF以外の形式の場合、AVIFに変換
+  if (originalFormat !== 'avif') {
+    try {
+      const conversionResult = await convertToAVIF(buffer, {
+        quality: 80,
+        maxWidth: 1920,
+        maxHeight: 1080
+      });
+      
+      finalBuffer = Buffer.from(conversionResult.buffer);
+      finalFormat = 'avif';
+      convertedSize = conversionResult.convertedSize;
+      compressionRatio = calculateCompressionRatio(originalSize, convertedSize);
+    } catch (conversionError) {
+      console.warn('AVIF変換に失敗、元の形式でアップロード:', conversionError);
     }
+  }
 
   // ファイル名の生成（タイムスタンプ + ランダム文字列）
   const timestamp = Date.now();
@@ -100,40 +103,28 @@ export async function uploadImageToSupabase(
 
 export async function deleteImageFromSupabase(filePath: string): Promise<void> {
   try {
-    console.log('Starting delete process for file path:', filePath);
-    
     const supabase = createClient();
     
-    // ファイルパスを正規化（プロフィール画像削除の成功パターンを適用）
+    // ファイルパスを正規化
     let fileName = filePath;
     
-    // パスの先頭のスラッシュを除去
     if (fileName.startsWith('/')) {
       fileName = fileName.substring(1);
     }
-    
-    console.log('Normalized filename:', fileName);
     
     if (!fileName || fileName.trim() === '') {
       throw new Error('ファイル名が無効です');
     }
     
-    console.log('Attempting to delete file from project-images bucket:', fileName);
-    
-    // 最初の削除試行（プロフィール画像削除と同じパターン）
+    // 最初の削除試行
     const { error } = await supabase.storage
       .from('project-images')
       .remove([fileName]);
 
     if (error) {
       console.error('Supabase delete error:', error);
-      console.error('Error details:', {
-        message: error.message,
-        name: error.name
-      });
       
       // 代替方法：パスを明示的に指定して再試行
-      console.log('Trying alternative delete method...');
       const { error: altError } = await supabase.storage
         .from('project-images')
         .remove([`/${fileName}`]);
@@ -142,7 +133,6 @@ export async function deleteImageFromSupabase(filePath: string): Promise<void> {
         console.error('Alternative delete also failed:', altError);
         
         // さらなる代替方法：ファイル存在確認後削除
-        console.log('Checking if file exists before delete...');
         const { data: fileList, error: listError } = await supabase.storage
           .from('project-images')
           .list('', { search: fileName });
@@ -152,22 +142,15 @@ export async function deleteImageFromSupabase(filePath: string): Promise<void> {
           throw new Error(`ファイル一覧取得エラー: ${listError.message}`);
         }
         
-        console.log('Files found:', fileList);
         const fileExists = fileList?.some((file: any) => file.name === fileName);
         
         if (!fileExists) {
-          console.log('File does not exist in storage, considering as successful deletion');
           return; // 成功として扱う
         }
         
         throw new Error(`ファイルの削除に失敗しました: ${altError.message}`);
-      } else {
-        console.log('Alternative delete method succeeded');
-        return;
       }
     }
-
-    console.log('File deleted successfully:', fileName);
   } catch (error) {
     console.error('Delete error:', error);
     throw error;
@@ -185,9 +168,6 @@ export async function uploadMultipleImagesToSupabase(
 // URLからファイルパスを抽出する関数
 export function extractFilePathFromUrl(url: string): string | null {
   try {
-    console.log('Extracting file path from URL:', url);
-    
-    // プロフィール画像削除と同じパターンを適用
     let fileName: string;
     
     if (url.includes('/storage/v1/object/public/project-images/')) {
@@ -210,8 +190,6 @@ export function extractFilePathFromUrl(url: string): string | null {
       }
     }
     
-    console.log('Extracted filename:', fileName);
-    
     if (!fileName || fileName.trim() === '') {
       console.error('Failed to extract filename from URL:', url);
       return null;
@@ -233,32 +211,23 @@ export async function ensureBucketExists(): Promise<void> {
   
   if (listError) {
     console.error('バケット一覧取得エラー:', listError);
-    // バケット一覧の取得に失敗した場合でも、アップロード処理は続行
-    console.log('バケット一覧の取得に失敗しましたが、処理を続行します');
     return;
   }
 
   const bucketExists = buckets?.some(bucket => bucket.name === BUCKET_NAME);
   
   if (bucketExists) {
-    console.log(`バケット "${BUCKET_NAME}" は既に存在します`);
     return;
   }
-  
-  // バケットが存在しない場合のみ作成を試行
-  console.log(`バケット "${BUCKET_NAME}" が存在しないため、作成を試行します`);
+
+  // バケットが存在しない場合は作成
   const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
     public: true,
-    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/tiff', 'image/bmp', 'image/heif', 'image/heic'],
-    fileSizeLimit: 10485760 // 10MB
+    allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'],
+    fileSizeLimit: 10485760, // 10MB
   });
 
   if (createError) {
-    console.error('バケット作成エラー:', createError);
-    // バケット作成に失敗した場合でも、既存バケットが使用できる可能性があるため警告のみ
     console.warn(`バケットの作成に失敗しましたが、既存バケットの使用を試行します: ${createError.message}`);
-    return;
   }
-  
-  console.log(`バケット "${BUCKET_NAME}" を作成しました`);
 } 

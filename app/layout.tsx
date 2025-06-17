@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
+import { getProfile } from '@/dal/profiles';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const notoSansJP = Noto_Sans_JP({ 
@@ -36,11 +37,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const profile = await getProfile();
+
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className={`${inter.variable} ${notoSansJP.variable} ${pacifico.variable} ${yellowtail.variable} font-sans antialiased`}>
@@ -55,7 +58,7 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
             </main>
-            <Footer />
+            <Footer profile={profile} />
           </div>
           <Toaster />
         </ThemeProvider>
