@@ -20,49 +20,9 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { SkillIcon } from '@/lib/utils/skill-icons';
+import { parseMarkdown } from '@/lib/utils/markdown-parser';
 import { Project } from '@/types';
 import { ProjectSkeleton } from '@/components/project-skeleton';
-
-// シンプルなマークダウンパーサー（基本的な要素のみ）
-const parseMarkdown = (text: string): string => {
-  if (!text) return '';
-  
-  let html = text
-    // ヘッダー
-    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mb-2 mt-4">$1</h3>')
-    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mb-3 mt-4">$1</h2>')
-    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mb-4 mt-4">$1</h1>')
-    
-    // 太字・斜体
-    .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-    
-    // コード
-    .replace(/`([^`]+)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-sm font-mono">$1</code>')
-    
-    // リンク
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">$1</a>')
-    
-    // リスト
-    .replace(/^\* (.+$)/gim, '<li class="ml-4">• $1</li>')
-    .replace(/^- (.+$)/gim, '<li class="ml-4">• $1</li>')
-    
-    // 改行
-    .replace(/\n\n/g, '</p><p class="mb-3">')
-    .replace(/\n/g, '<br>');
-
-  // リストをまとめる
-  html = html.replace(/(<li[^>]*>.*?<\/li>)/g, (match) => {
-    return `<ul class="mb-3">${match}</ul>`;
-  });
-
-  // 段落で囲む
-  if (html && !html.startsWith('<h') && !html.startsWith('<ul')) {
-    html = `<p class="mb-3">${html}</p>`;
-  }
-
-  return html;
-};
 
 interface ProjectsSectionProps {
   projects: Project[];
@@ -424,11 +384,11 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                           {/* コンテンツセクション */}
                           <div className="flex flex-col flex-1 p-6">
                             <div className="flex-1">
-                              <CardTitle className="text-lg sm:text-xl line-clamp-2 mb-2">
+                              <CardTitle className="text-lg line-clamp-2 mb-2">
                                 {project.title}
                               </CardTitle>
                               <div 
-                                className="line-clamp-3 text-base mt-2 text-muted-foreground mb-4"
+                                className="line-clamp-3 text-sm mt-2 text-muted-foreground mb-4"
                                 dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
                               />
                             </div>

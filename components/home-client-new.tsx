@@ -3,38 +3,11 @@
 import { Project } from '@/types';
 import { Profile } from '@/lib/types/database';
 import { HeroSection } from '@/components/sections/hero-section';
+import { HeroSkeleton } from '@/components/sections/hero-skeleton';
 import { ProjectsSection } from '@/components/sections/projects-section';
 import { CTASection } from '@/components/sections/cta-section';
 
-// ダミーデータ
-const dummyProfile: Profile = {
-  id: '1',
-  name: 'サンプル 太郎',
-  title: 'Webデベロッパー',
-  bio: 'モダンなWeb技術を使用したアプリケーション開発を行っています。ユーザー体験を重視した設計と実装を得意としています。',
-  avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-  location: '日本',
-  experience_years: 3,
-  email: 'sample@example.com',
-  phone: null,
-  website: 'https://example.com',
-  github_url: 'https://github.com/sample',
-  linkedin_url: 'https://linkedin.com/in/sample',
-  twitter_url: 'https://twitter.com/sample',
-  skills: ['React', 'Next.js', 'TypeScript', 'Node.js', 'Python', 'PostgreSQL'],
-  slack_user_id: null,
-  slack_workspace_url: null,
-  slack_display_name: null,
-  slack_status_text: null,
-  slack_status_emoji: null,
-  slack_is_active: false,
-  slack_last_activity: null,
-  slack_webhook_url: null,
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString()
-};
-
-// ダミープロジェクトデータ
+// ダミープロジェクトデータ（プロジェクトが存在しない場合のフォールバック用）
 const dummyProjects: Project[] = [
   {
     id: '1',
@@ -94,18 +67,21 @@ interface HomeClientNewProps {
 }
 
 export function HomeClientNew({ featuredProjects, allProjects = [], profile, isLoading = false }: HomeClientNewProps) {
-  // データが存在しない場合はダミーデータを使用
-  const profileToUse = profile || dummyProfile;
+  // プロジェクトが存在しない場合のフォールバック
   const featuredProjectsToUse = featuredProjects.length > 0 ? featuredProjects : dummyProjects.filter(p => p.is_featured);
   const allProjectsToUse = allProjects.length > 0 ? allProjects : dummyProjects;
 
   return (
     <div className="min-h-screen">
-      {/* ヒーローセクション */}
-      <HeroSection 
-        profile={profileToUse}
-        featuredProjects={featuredProjectsToUse}
-      />
+      {/* ヒーローセクション - プロフィールが存在しない場合はスケルトンを表示 */}
+      {profile ? (
+        <HeroSection 
+          profile={profile}
+          featuredProjects={featuredProjectsToUse}
+        />
+      ) : (
+        <HeroSkeleton />
+      )}
 
       {/* プロジェクト一覧セクション */}
       <ProjectsSection 
