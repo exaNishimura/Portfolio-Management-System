@@ -1,10 +1,16 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function RootLoading() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-8">
-        {/* ヘッダー部分 */}
+        {/* 中央にメインローディングスピナー */}
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <LoadingSpinner size="sm" text="ページを読み込み中..." variant="dots" />
+        </div>
+        
+        {/* スケルトンローディング */}
         <div className="mb-16 text-center">
           <Skeleton className="h-12 w-64 mx-auto mb-4" />
           <Skeleton className="h-6 w-96 mx-auto mb-2" />

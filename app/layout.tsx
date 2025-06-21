@@ -7,6 +7,7 @@ import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getProfile } from '@/dal/profiles';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -80,10 +81,7 @@ export default async function RootLayout({
             <main className="flex-1">
               <Suspense fallback={
                 <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                    <p className="text-muted-foreground">読み込み中...</p>
-                  </div>
+                  <LoadingSpinner size="sm" text="読み込み中..." variant="dots" />
                 </div>
               }>
                 {children}

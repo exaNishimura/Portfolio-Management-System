@@ -1,10 +1,15 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { BarChart3 } from 'lucide-react';
 
 export default function AdminDashboardLoading() {
   return (
     <main className="p-8">
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner size="sm" text="管理画面を読み込み中..." variant="dots" />
+      </div>
+      
       <div className="mb-8">
         <Skeleton className="h-9 w-64 mb-2" />
         <Skeleton className="h-5 w-96" />

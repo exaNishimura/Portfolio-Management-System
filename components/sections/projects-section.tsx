@@ -5,6 +5,7 @@ import { Project } from '@/types';
 import { ProjectSkeleton } from '@/components/project-skeleton';
 import { ProjectCard } from '@/components/projects/project-card';
 import { FloatingFilter } from '@/components/projects/floating-filter';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useProjectsFilter } from '@/hooks/use-projects-filter';
 import { useMobileScrollEffect } from '@/hooks/use-mobile-scroll-effect';
 import { useFilterUIState } from '@/hooks/use-filter-ui-state';
@@ -97,10 +98,15 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
               transition={{ duration: 0.3 }}
             >
               {isLoading ? (
-                <div className="grid gap-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <ProjectSkeleton key={index} />
-                  ))}
+                                  <div className="space-y-8">
+                    <div className="flex items-center justify-center py-12">
+                      <LoadingSpinner size="sm" text="実績を読み込み中..." variant="dots" />
+                    </div>
+                  <div className="grid gap-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <ProjectSkeleton key={index} />
+                    ))}
+                  </div>
                 </div>
               ) : filteredAndSortedProjects.length === 0 ? (
                 <div className="text-center py-12 text-slate-600 dark:text-slate-400">

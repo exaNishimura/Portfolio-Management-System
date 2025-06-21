@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 
@@ -7,6 +8,11 @@ export default function ProjectDetailLoading() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* ローディングスピナー */}
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner size="sm" text="実績詳細を読み込み中..." variant="dots" />
+        </div>
+        
         {/* ナビゲーション */}
         <div className="mb-8">
           <Button variant="ghost" className="mb-4" disabled>

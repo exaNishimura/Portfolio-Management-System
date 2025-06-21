@@ -1,10 +1,16 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function ContactLoading() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-16 max-w-2xl">
+        {/* 中央にメインローディングスピナー */}
+        <div className="flex items-center justify-center min-h-[40vh] mb-8">
+          <LoadingSpinner size="sm" text="お問い合わせフォームを読み込み中..." variant="dots" />
+        </div>
+        
         {/* ヘッダー */}
         <div className="text-center mb-12">
           <Skeleton className="h-10 w-48 mx-auto mb-4" />
