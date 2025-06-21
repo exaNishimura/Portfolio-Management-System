@@ -34,9 +34,29 @@ export function useProjectsFilter({ projects }: UseProjectsFilterProps) {
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
         case 'newest':
+          // 制作年を優先、その後ポートフォリオ登録年月日を参照
+          const aYear = a.project_year || 0;
+          const bYear = b.project_year || 0;
+          
+          if (aYear !== bYear) {
+            return bYear - aYear; // 制作年の新しい順
+          }
+          
+          // 制作年が同じ場合はポートフォリオ登録年月日で比較
           return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+          
         case 'oldest':
+          // 制作年を優先、その後ポートフォリオ登録年月日を参照
+          const aYearOld = a.project_year || 0;
+          const bYearOld = b.project_year || 0;
+          
+          if (aYearOld !== bYearOld) {
+            return aYearOld - bYearOld; // 制作年の古い順
+          }
+          
+          // 制作年が同じ場合はポートフォリオ登録年月日で比較
           return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+          
         case 'title':
           return a.title.localeCompare(b.title);
         default:
