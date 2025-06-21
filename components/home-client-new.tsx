@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Project } from '@/types';
 import { Profile } from '@/lib/types/database';
 import { HeroSection } from '@/components/sections/hero-section';
@@ -70,6 +71,31 @@ export function HomeClientNew({ featuredProjects, allProjects = [], profile, isL
   // プロジェクトが存在しない場合のフォールバック
   const featuredProjectsToUse = featuredProjects.length > 0 ? featuredProjects : dummyProjects.filter(p => p.is_featured);
   const allProjectsToUse = allProjects.length > 0 ? allProjects : dummyProjects;
+
+  // URLパラメータでプロジェクトセクションへのスクロールを制御
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const scrollToProjects = urlParams.get('scrollTo');
+    
+    if (scrollToProjects === 'projects' && !isLoading) {
+      // ページの読み込みが完了してからスクロール
+      const timer = setTimeout(() => {
+        const projectsSection = document.getElementById('projects-section');
+        if (projectsSection) {
+          projectsSection.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+          
+          // URLからパラメータを削除（履歴を汚さないため）
+          const newUrl = window.location.pathname;
+          window.history.replaceState({}, '', newUrl);
+        }
+      }, 500); // 少し待ってからスクロール
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   return (
     <div className="min-h-screen">

@@ -124,7 +124,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         <div className="container mx-auto px-4 py-8 max-w-6xl">
           {/* ナビゲーション */}
           <div className="mb-8">
-            <Link href="/#projects-section">
+            <Link href="/?scrollTo=projects">
               <Button variant="ghost" className="mb-4">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 実績一覧に戻る

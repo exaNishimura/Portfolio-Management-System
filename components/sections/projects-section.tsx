@@ -67,12 +67,12 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
       <section 
         id="projects-section" 
         className="py-20 px-4 bg-gradient-to-br from-violet-50/30 via-blue-50/20 to-cyan-50/30 dark:from-violet-950/10 dark:via-blue-950/5 dark:to-cyan-950/10"
+        style={{ opacity: 1, visibility: 'visible' }}
       >
         <div className="container mx-auto max-w-7xl">
           <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
+            animate="visible"
             variants={ANIMATION_VARIANTS.container}
           >
             {/* セクションヘッダー */}
