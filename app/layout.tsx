@@ -140,16 +140,17 @@ export default async function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <head>
-        {/* Critical CSS プリロード */}
+        {/* Critical image preload for LCP improvement */}
         <link
           rel="preload"
-          href="/fonts/inter-var.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
+          href="/placeholder-avatar.webp"
+          as="image"
+          type="image/webp"
         />
-        {/* DNS Prefetch for critical domains */}
-        <link rel="dns-prefetch" href="//images.unsplash.com" />
+        
+        {/* DNS Prefetch for critical domains only */}
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
         
         {/* Theme color for PWA */}
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
