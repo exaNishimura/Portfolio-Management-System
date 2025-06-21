@@ -8,39 +8,13 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { PortfolioSettings } from '@/types';
-import { 
-  Code2, 
-  Globe, 
-  Smartphone, 
-  Zap, 
-  Star, 
-  Heart, 
-  Briefcase, 
-  User,
-  Settings,
-  Palette
-} from 'lucide-react';
 
-const iconOptions = [
-  { value: 'code2', label: 'Code2', icon: Code2 },
-  { value: 'globe', label: 'Globe', icon: Globe },
-  { value: 'smartphone', label: 'Smartphone', icon: Smartphone },
-  { value: 'zap', label: 'Zap', icon: Zap },
-  { value: 'star', label: 'Star', icon: Star },
-  { value: 'heart', label: 'Heart', icon: Heart },
-  { value: 'briefcase', label: 'Briefcase', icon: Briefcase },
-  { value: 'user', label: 'User', icon: User },
-  { value: 'settings', label: 'Settings', icon: Settings },
-  { value: 'palette', label: 'Palette', icon: Palette },
-];
 
 const formSchema = z.object({
   site_title: z.string().min(1, 'サイトタイトルは必須です'),
-  site_icon: z.string().min(1, 'アイコンを選択してください'),
   site_image_url: z.string().optional(),
   contact_email: z.string().email('有効なメールアドレスを入力してください').optional().or(z.literal('')),
   contact_github: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
@@ -63,7 +37,6 @@ export default function PortfolioSettingsForm({ initialSettings }: PortfolioSett
     resolver: zodResolver(formSchema),
     defaultValues: {
       site_title: initialSettings?.site_title || 'Portfolio Site',
-      site_icon: initialSettings?.site_icon || 'code2',
       site_image_url: initialSettings?.site_image_url || '',
       contact_email: initialSettings?.contact_email || '',
       contact_github: initialSettings?.contact_github || '',
@@ -101,12 +74,12 @@ export default function PortfolioSettingsForm({ initialSettings }: PortfolioSett
     }
   };
 
-  const selectedIcon = iconOptions.find(option => option.value === form.watch('site_icon'));
+
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* サイトタイトル */}
           <FormField
             control={form.control}
@@ -117,42 +90,6 @@ export default function PortfolioSettingsForm({ initialSettings }: PortfolioSett
                 <FormControl>
                   <Input placeholder="Portfolio Site" {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* サイトアイコン */}
-          <FormField
-            control={form.control}
-            name="site_icon"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>サイトアイコン</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue>
-                        {selectedIcon && (
-                          <div className="flex items-center space-x-2">
-                            <selectedIcon.icon className="h-4 w-4" />
-                            <span>{selectedIcon.label}</span>
-                          </div>
-                        )}
-                      </SelectValue>
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {iconOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        <div className="flex items-center space-x-2">
-                          <option.icon className="h-4 w-4" />
-                          <span>{option.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}

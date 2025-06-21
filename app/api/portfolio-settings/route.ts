@@ -33,7 +33,6 @@ export async function POST(request: Request) {
       .from('portfolio_settings')
       .insert([{
         site_title: data.site_title,
-        site_icon: data.site_icon,
         site_image_url: data.site_image_url || '',
         contact_email: data.contact_email || '',
         contact_github: data.contact_github || '',
@@ -74,7 +73,6 @@ export async function PUT(request: Request) {
       .from('portfolio_settings')
       .update({
         site_title: data.site_title,
-        site_icon: data.site_icon,
         site_image_url: data.site_image_url || '',
         contact_email: data.contact_email || '',
         contact_github: data.contact_github || '',

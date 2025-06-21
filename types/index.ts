@@ -56,7 +56,6 @@ export interface Profile {
 export interface PortfolioSettings {
   id: string;
   site_title: string;
-  site_icon: string;
   site_image_url: string;
   contact_email: string;
   contact_github: string;
