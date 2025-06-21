@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase';
 import { Project } from '@/types';
-import { Profile } from '@/lib/types/database';
+import { Profile } from '@/types';
 import Image from "next/image";
 import * as LucideIcons from "lucide-react";
 import { HomeClientNew } from '@/components/home-client-new';

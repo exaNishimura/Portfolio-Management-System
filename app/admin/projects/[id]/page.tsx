@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getProject } from '@/dal/projects';
+import { getProjectById } from '@/dal/projects';
 import ProjectEditForm from '@/components/admin/project-edit-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
 export default async function ProjectEditPage({ params }: Props) {
   const { id } = await params;
   
-  const project = await getProject(id);
+  const project = await getProjectById(id);
   
   if (!project) {
     notFound();

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Profile } from '@/lib/types/database';
+import { Profile } from '@/types';
 
 const profileSchema = z.object({
   name: z.string().min(1, '名前は必須です'),

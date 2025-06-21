@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { updateProject, getProject, deleteProject } from '@/dal/projects';
+import { updateProject, getProjectById, deleteProject } from '@/dal/projects';
+import { ProjectCategory } from '@/types';
 
 const updateProjectSchema = z.object({
   title: z.string().min(1, 'タイトルは必須です'),
@@ -40,6 +41,7 @@ export async function PUT(
       github_url: validatedData.github_url && validatedData.github_url.trim() !== '' 
         ? validatedData.github_url 
         : null,
+      category: validatedData.category as ProjectCategory,
     };
 
     const updatedProject = await updateProject(id, processedData);
@@ -69,7 +71,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const project = await getProject(id);
+    const project = await getProjectById(id);
     
     if (!project) {
       return NextResponse.json(
@@ -97,7 +99,7 @@ export async function DELETE(
     const { id } = await params;
     
     // プロジェクトの存在確認
-    const project = await getProject(id);
+    const project = await getProjectById(id);
     if (!project) {
       return NextResponse.json(
         { error: 'プロジェクトが見つかりません' },

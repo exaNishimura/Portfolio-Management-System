@@ -14,7 +14,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { SkillIcon } from '@/lib/utils/skill-icons';
-import { Profile } from '@/lib/types/database';
+import { Profile } from '@/types';
 
 interface HeroSectionProps {
   profile: Profile;

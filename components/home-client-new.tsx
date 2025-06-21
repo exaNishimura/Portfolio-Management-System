@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { Project } from '@/types';
-import { Profile } from '@/lib/types/database';
+import { Profile } from '@/types';
 import { HeroSection } from '@/components/sections/hero-section';
 import { HeroSkeleton } from '@/components/sections/hero-skeleton';
 import { ProjectsSection } from '@/components/sections/projects-section';
@@ -16,6 +16,7 @@ const dummyProjects: Project[] = [
     description: 'モダンなECサイトのフロントエンド開発。レスポンシブデザインとユーザビリティを重視した設計で、快適なショッピング体験を提供。',
     image_url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop',
     images: ['https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=600&fit=crop'],
+    image_paths: [],
     project_url: 'https://example-shop.com/',
     github_url: 'https://github.com/sample/ecommerce',
     technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Supabase'],
@@ -32,6 +33,7 @@ const dummyProjects: Project[] = [
     description: 'クリエイター向けのポートフォリオサイト。作品を美しく展示できるギャラリー機能と、お問い合わせフォームを実装。',
     image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
     images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop'],
+    image_paths: [],
     project_url: 'https://portfolio-sample.com/',
     github_url: 'https://github.com/sample/portfolio',
     technologies: ['React', 'Node.js', 'MongoDB', 'Express'],
@@ -48,8 +50,9 @@ const dummyProjects: Project[] = [
     description: '企業のコーポレートサイト。会社情報の整理と採用情報の充実を図り、ブランドイメージの向上を実現。',
     image_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop',
     images: ['https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&h=600&fit=crop'],
+    image_paths: [],
     project_url: 'https://corporate-sample.com/',
-    github_url: '',
+    github_url: null,
     technologies: ['Vue.js', 'Nuxt.js', 'SCSS', 'WordPress'],
     category: 'corporate',
     created_at: '2023-08-10T00:00:00Z',

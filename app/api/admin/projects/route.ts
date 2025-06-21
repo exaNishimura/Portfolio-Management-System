@@ -1,97 +1,143 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { z } from 'zod';
+import { debugLog, errorLog, safeAsync, removeUndefined } from '@/lib/utils';
 
-const createProjectSchema = z.object({
-  title: z.string().min(1, 'タイトルは必須です'),
-  description: z.string().optional(),
-  images: z.array(z.string()).optional(),
-  project_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
-  github_url: z.string().url('有効なURLを入力してください').optional().or(z.literal('')),
-  technologies: z.array(z.string()).min(1, '少なくとも1つの技術を選択してください'),
-  category: z.string().min(1, 'カテゴリは必須です'),
-  is_featured: z.boolean().optional(),
-  project_year: z.number().min(2000).max(2100).optional(),
-  project_scale: z.enum(['small', 'medium', 'large']).optional(),
-});
-
-// プロジェクト一覧取得
-export async function GET() {
-  try {
+/**
+ * プロジェクト一覧取得API
+ * GET /api/admin/projects
+ */
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const featured = url.searchParams.get('featured') === 'true';
+  const category = url.searchParams.get('category');
+  const limit = url.searchParams.get('limit');
+  
+  debugLog('GET /api/admin/projects', { featured, category, limit });
+  
+  const [error, result] = await safeAsync(async () => {
     const supabase = await createClient();
     
-    const { data: projects, error } = await supabase
+    let query = supabase
       .from('projects')
       .select('*')
+      .order('project_year', { ascending: false })
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('プロジェクト取得エラー:', error);
-      return NextResponse.json(
-        { error: 'プロジェクトの取得に失敗しました' },
-        { status: 500 }
-      );
+    if (featured) {
+      query = query.eq('is_featured', true);
+    }
+    
+    if (category) {
+      query = query.eq('category', category);
+    }
+    
+    if (limit) {
+      const limitNum = parseInt(limit, 10);
+      if (!isNaN(limitNum) && limitNum > 0) {
+        query = query.limit(limitNum);
+      }
     }
 
-    return NextResponse.json(projects);
-  } catch (error) {
-    console.error('プロジェクト取得エラー:', error);
+    const { data, error } = await query;
+    
+    if (error) {
+      throw new Error(`Failed to fetch projects: ${error.message}`);
+    }
+
+    return data || [];
+  });
+
+  if (error) {
+    errorLog('GET /api/admin/projects failed', error, { featured, category, limit });
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
+      { error: 'プロジェクトの取得に失敗しました', details: error.message },
       { status: 500 }
     );
   }
+
+  debugLog('GET /api/admin/projects success', { count: result?.length });
+  return NextResponse.json(result);
 }
 
-// 新規プロジェクト作成
+/**
+ * プロジェクト作成API
+ * POST /api/admin/projects
+ */
 export async function POST(request: Request) {
-  try {
+  debugLog('POST /api/admin/projects called');
+  
+  const [parseError, data] = await safeAsync(async () => {
     const body = await request.json();
     
-    // バリデーション
-    const validatedData = createProjectSchema.parse(body);
+    // 必須フィールドの検証
+    if (!body.title || typeof body.title !== 'string') {
+      throw new Error('タイトルは必須です');
+    }
     
-    // 空文字列をnullに変換
-    const processedData = {
-      ...validatedData,
-      description: validatedData.description || null,
-      project_url: validatedData.project_url || null,
-      github_url: validatedData.github_url || null,
-      project_year: validatedData.project_year || null,
-      project_scale: validatedData.project_scale || null,
-      is_featured: validatedData.is_featured || false,
-      images: validatedData.images || [],
-    };
+    if (!body.description || typeof body.description !== 'string') {
+      throw new Error('説明は必須です');
+    }
+    
+    if (!body.category || typeof body.category !== 'string') {
+      throw new Error('カテゴリは必須です');
+    }
+    
+    if (!Array.isArray(body.technologies)) {
+      throw new Error('技術スタックは配列である必要があります');
+    }
 
+    return body;
+  });
+
+  if (parseError) {
+    errorLog('POST /api/admin/projects validation failed', parseError);
+    return NextResponse.json(
+      { error: 'リクエストデータが無効です', details: parseError.message },
+      { status: 400 }
+    );
+  }
+
+  const [error, result] = await safeAsync(async () => {
     const supabase = await createClient();
     
+    // データをサニタイズ
+    const sanitizedData = removeUndefined({
+      title: data.title.trim(),
+      description: data.description.trim(),
+      image_url: data.image_url?.trim() || '',
+      images: Array.isArray(data.images) ? data.images : [],
+      image_paths: Array.isArray(data.image_paths) ? data.image_paths : [],
+      project_url: data.project_url?.trim() || '',
+      github_url: data.github_url?.trim() || '',
+      technologies: data.technologies,
+      category: data.category.trim(),
+      is_featured: Boolean(data.is_featured),
+      project_year: data.project_year ? parseInt(data.project_year, 10) : new Date().getFullYear(),
+      project_scale: data.project_scale || 'medium',
+      updated_at: new Date().toISOString()
+    });
+
     const { data: project, error } = await supabase
       .from('projects')
-      .insert([processedData])
+      .insert([sanitizedData])
       .select()
       .single();
 
     if (error) {
-      console.error('プロジェクト作成エラー:', error);
-      return NextResponse.json(
-        { error: 'プロジェクトの作成に失敗しました' },
-        { status: 500 }
-      );
+      throw new Error(`Database insert failed: ${error.message}`);
     }
 
-    return NextResponse.json(project, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'バリデーションエラー', details: error.errors },
-        { status: 400 }
-      );
-    }
+    return project;
+  });
 
-    console.error('プロジェクト作成エラー:', error);
+  if (error) {
+    errorLog('POST /api/admin/projects failed', error, data);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました' },
+      { error: 'プロジェクトの作成に失敗しました', details: error.message },
       { status: 500 }
     );
   }
+
+  debugLog('POST /api/admin/projects success', { id: result?.id, title: result?.title });
+  return NextResponse.json(result, { status: 201 });
 } 

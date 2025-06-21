@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, ExternalLink, Github, Star } from 'lucide-react';
-import { Project } from '@/lib/types/database';
+import { Project } from '@/types';
 import { toast } from 'sonner';
 
 interface ProjectsListProps {

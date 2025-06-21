@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Github, Mail, ExternalLink, LogIn, Globe, Linkedin, Twitter } from 'lucide-react';
-import { Profile } from '@/lib/types/database';
+import { Profile } from '@/types';
 import { useState, useEffect } from 'react';
 
 interface FooterProps {

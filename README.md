@@ -1,369 +1,298 @@
 # Portfolio Site
 
-モダンなNext.js 15とSupabaseを使用したポートフォリオサイト。プロジェクト管理、プロフィール管理、お問い合わせ機能を備えた本格的なWebアプリケーションです。
+> **バージョン 0.3.0** - 大規模コード最適化リリース
 
-## 🚀 特徴
+現代的なポートフォリオサイトを構築するためのNext.js 15アプリケーションです。エンタープライズレベルの保守性とパフォーマンスを重視した設計で、個人やフリーランスの開発者が自身の実績を効果的に展示できます。
 
-- **モダンなフロントエンド**: Next.js 15 + React 19 + TypeScript
-- **レスポンシブデザイン**: TailwindCSS + shadcn/ui
-- **バックエンド**: Supabase (認証・データベース・ストレージ)
-- **管理機能**: プロジェクト・プロフィール・設定の完全管理
-- **画像最適化**: 自動AVIF変換とストレージ管理
-- **SEO対応**: Server Components活用
-- **アクセシビリティ**: WAI-ARIA準拠
-- **スマホ最適化**: スクロール連動エフェクト
-- **保守性重視**: カスタムフック・コンポーネント分割による高い保守性
+## 🌟 主な特徴
+
+### ✨ 高度なUIエクスペリエンス
+- **響応型デザイン**: 全デバイス対応（PC、タブレット、スマートフォン）
+- **スマートフィルタリング**: 技術・カテゴリ・年度別の動的フィルタリング
+- **スマートフォン最適化**: スクロール連動による自動エフェクト
+- **アクセシビリティ**: WCAG準拠のアクセシブルなユーザーインターフェース
+- **パフォーマンス**: Core Web Vitals最適化
+
+### 🏗️ エンタープライズレベルのアーキテクチャ
+- **型安全性**: 厳密なTypeScript型定義と型チェック
+- **エラーハンドリング**: 統一されたエラーハンドリングシステム
+- **ログ管理**: 開発/本番環境対応のログシステム
+- **パフォーマンス最適化**: 並列処理、キャッシュ戦略、画像最適化
+- **デバッグ機能**: 開発者向けの詳細なデバッグ機能
+
+### 📊 管理機能
+- **プロジェクト管理**: 実績の作成・編集・削除
+- **画像アップロード**: Supabase Storage連携
+- **ダッシュボード**: リアルタイム統計とアクティビティログ
+- **設定管理**: サイト設定の一元管理
+
+### 🔧 技術統合
+- **Slack連携**: ステータス自動同期（オプション）
+- **メール機能**: お問い合わせフォーム（Resend連携）
+- **SEO最適化**: メタデータ最適化とサイトマップ
 
 ## 🛠️ 技術スタック
 
 ### フロントエンド
-- **Next.js** (v15.3.3) - App Router
-- **React** (v19.1.0) - Server/Client Components
-- **TypeScript** (v5.8.3) - 型安全性
-- **TailwindCSS** - スタイリング
-- **shadcn/ui** - UIコンポーネント
-- **Framer Motion** - アニメーション
-- **Intersection Observer API** - スクロール監視
+- **Next.js 15.3.3** - App Router & Server Components
+- **React 19.1.0** - 最新React機能活用
+- **TypeScript 5.8.3** - 厳密型チェック
+- **Tailwind CSS** - ユーティリティファーストCSS
+- **shadcn/ui** - モダンUIコンポーネントライブラリ
+- **Framer Motion** - 高性能アニメーション
 
-### バックエンド・インフラ
-- **Supabase** - データベース・認証・ストレージ
-- **PostgreSQL** - メインデータベース
-- **Row Level Security (RLS)** - セキュリティ
+### バックエンド・データベース
+- **Supabase** - PostgreSQL + リアルタイム機能
+- **Supabase Storage** - ファイルストレージ
+- **Server Actions** - サーバーサイド処理
 
-### 開発ツール
-- **ESLint** - コード品質
-- **Sharp** - 画像処理
-- **Zod** - スキーマバリデーション
-- **React Hook Form** - フォーム管理
+### 開発・品質管理
+- **ESLint** - コード品質管理
+- **TypeScript** - 型安全性
+- **Husky** - Git hooks（将来実装予定）
 
-## 📁 プロジェクト構造
+## 🎯 アーキテクチャ設計
 
+### 📁 プロジェクト構造
 ```
-portfolio/
-├── app/                      # Next.js App Router
-│   ├── (auth)/              # 認証関連ページ
-│   ├── admin/               # 管理画面
-│   ├── api/                 # API Routes
-│   ├── contact/             # お問い合わせページ
-│   └── projects/            # プロジェクト詳細ページ
-├── components/              # Reactコンポーネント
-│   ├── admin/               # 管理画面コンポーネント
-│   ├── layout/              # レイアウトコンポーネント
-│   ├── projects/            # プロジェクト関連コンポーネント
-│   │   ├── project-card.tsx        # 個別プロジェクトカード
-│   │   └── floating-filter.tsx     # フローティングフィルター
-│   ├── sections/            # ページセクション
-│   └── ui/                  # shadcn/ui コンポーネント
-├── hooks/                   # カスタムフック
-│   ├── use-projects-filter.ts      # プロジェクトフィルタリング
-│   ├── use-mobile-scroll-effect.ts # モバイルスクロールエフェクト
-│   ├── use-filter-ui-state.ts      # フィルターUI状態管理
-│   └── use-toast.ts                # トースト通知
-├── lib/                     # ユーティリティ・設定
-│   ├── constants/           # 定数定義
-│   │   └── projects.ts      # プロジェクト関連定数
-│   ├── types/               # 型定義
-│   └── utils/               # ヘルパー関数
-│       ├── markdown-parser.ts      # マークダウン解析
-│       ├── skill-icons.tsx         # スキルアイコン
-│       └── image-converter.ts      # 画像変換
-├── dal/                     # Data Access Layer
-├── supabase/                # データベース設定
-│   ├── migrations/          # マイグレーションファイル
-│   └── init.sql            # 初期スキーマ
-└── public/                  # 静的ファイル
+src/
+├── app/                    # Next.js App Router
+│   ├── (dashboard)/       # 管理画面ルート
+│   ├── api/               # APIエンドポイント
+│   └── (public)/          # 公開ページ
+├── components/            # Reactコンポーネント
+│   ├── ui/               # shadcn/ui基盤コンポーネント
+│   ├── admin/            # 管理画面専用コンポーネント
+│   ├── sections/         # ページセクション
+│   └── projects/         # プロジェクト関連コンポーネント
+├── dal/                  # Data Access Layer
+├── hooks/                # カスタムReactフック
+├── lib/                  # ユーティリティ・設定
+│   ├── utils/           # ヘルパー関数
+│   ├── constants/       # 定数定義
+│   └── error-handler.ts # エラーハンドリング
+└── types/               # TypeScript型定義
 ```
 
-## 🏗️ アーキテクチャ設計
+### 🔄 DAL（Data Access Layer）設計
+各データソースに対する統一されたアクセス層を提供：
 
-### カスタムフック設計
-本プロジェクトでは、関心の分離とコードの再利用性を重視したカスタムフック設計を採用しています：
+- **エラーハンドリング**: 統一されたエラー処理
+- **ログ機能**: デバッグ・本番対応ログ
+- **パフォーマンス**: 並列処理による高速化
+- **型安全性**: 厳密な型定義
 
-#### 1. `useProjectsFilter` - プロジェクトフィルタリング
 ```typescript
-// フィルタリング・ソート機能を統合管理
-const {
-  selectedTechnologies,
-  sortBy,
-  filteredAndSortedProjects,
-  handleTechnologyChange,
-  clearFilters
-} = useProjectsFilter({ projects });
-```
-
-#### 2. `useMobileScrollEffect` - スマホスクロールエフェクト
-```typescript
-// Intersection Observer APIを使用したスクロール監視
-const { shouldShowEffect } = useMobileScrollEffect({ 
-  projects: filteredAndSortedProjects 
+// 例: プロジェクト取得
+const projects = await getProjects({
+  featured: true,
+  limit: 10,
+  orderBy: { column: 'project_year', ascending: false },
+  category: 'Web Development'
 });
 ```
 
-#### 3. `useFilterUIState` - フィルターUI状態管理
+### 🎣 カスタムフック戦略
+再利用可能なロジックをフックとして抽象化：
+
+- **`use-projects-filter`**: フィルタリング・ソート機能
+- **`use-mobile-scroll-effect`**: スマートフォン最適化エフェクト
+- **`use-filter-ui-state`**: フィルターUI状態管理
+
+### 🔧 エラーハンドリングシステム
+統一されたエラー管理システム：
+
 ```typescript
-// フィルターUIの開閉状態とローカルストレージ同期
-const {
-  isFilterVisible,
-  isTechFilterOpen,
-  setIsTechFilterOpen
-} = useFilterUIState();
+// APIエラーハンドリング
+export function handleApiError(error: unknown, context?: any): NextResponse {
+  // Supabaseエラー、バリデーションエラー等を統一処理
+}
+
+// 安全な非同期処理
+const [error, result] = await safeAsync(async () => {
+  return await riskyOperation();
+});
 ```
 
-### コンポーネント分割戦略
+## 🚀 セットアップ
 
-#### 1. 単一責任の原則
-- 各コンポーネントは明確な責任を持つ
-- ビジネスロジックとUIロジックの分離
-- 再利用可能性を重視した設計
+### 1. リポジトリクローン
+```bash
+git clone <repository-url>
+cd portfolio
+npm install
+```
 
-#### 2. Props Drilling回避
-- カスタムフックによる状態管理の集約
-- 適切なコンポーネント階層設計
-- Context APIの適切な使用
+### 2. 環境変数設定
+```bash
+cp .env.local.example .env.local
+```
 
-### パフォーマンス最適化
-
-#### 1. スマホ向け最適化
-- **スクロール連動エフェクト**: カードが画面中央に来た時に自動的にホバーエフェクトを適用
-- **Intersection Observer**: 効率的なスクロール監視
-- **条件分岐レンダリング**: PC/モバイルでの適切な表示制御
-
-#### 2. メモ化戦略
-- `useMemo`による計算結果のキャッシュ
-- `useCallback`によるイベントハンドラーの最適化
-- 不要な再レンダリングの防止
-
-## 🗄️ データベース構造
-
-### テーブル一覧
-- **profiles** - プロフィール情報
-- **projects** - プロジェクト情報
-- **categories** - プロジェクトカテゴリ
-- **portfolio_settings** - サイト設定
-
-### 主要機能
-- Row Level Security (RLS) による認可制御
-- 自動タイムスタンプ管理
-- プロジェクト画像の複数対応
-- Slack連携機能
-
-## 🔧 セットアップ
-
-### 1. 環境変数の設定
-
-`.env.local` ファイルを作成し、以下の環境変数を設定：
-
-```env
-# Supabase
+必要な環境変数：
+```bash
+# Supabase設定
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# 認証
-ADMIN_EMAILS=your_admin_email@example.com
-
-# メール送信 (Resend)
-RESEND_API_KEY=your_resend_api_key
-
-# Slack連携 (オプション)
+# オプション: Slack統合
 SLACK_BOT_TOKEN=your_slack_bot_token
+SLACK_USER_TOKEN=your_slack_user_token
+
+# オプション: メール機能
+RESEND_API_KEY=your_resend_api_key
 ```
 
-### 2. 依存関係のインストール
-
+### 3. データベースセットアップ
 ```bash
-npm install
+# Supabaseプロジェクト作成後
+npm run db:init
 ```
 
-### 3. Supabaseデータベースの初期化
-
-```bash
-# Supabaseプロジェクトに接続
-npx supabase link --project-ref your-project-ref
-
-# マイグレーションを実行
-npx supabase db push
-```
-
-または、Supabaseダッシュボードで `supabase/init.sql` を実行
-
-### 4. 開発サーバーの起動
-
+### 4. 開発サーバー起動
 ```bash
 npm run dev
 ```
 
-ブラウザで `http://localhost:3000` を開く
+## 📋 主要機能
 
-## 🎯 主要機能
-
-### 1. ポートフォリオサイト
-- **ホームページ**: プロフィール・注目プロジェクト表示
-- **プロジェクト一覧**: 
-  - 技術スタック別フィルタリング
-  - 並び順ソート（新しい順・古い順・タイトル順）
-  - **スマホ最適化**: スクロール連動エフェクト
-  - フローティングフィルターUI
-- **プロジェクト詳細**: 画像ギャラリー・技術詳細・マークダウン対応
-- **お問い合わせ**: メール送信機能
-
-### 2. 管理画面 (`/admin`)
-- **認証**: GitHub OAuth
-- **プロジェクト管理**: CRUD操作・画像アップロード
-- **プロフィール管理**: 個人情報・スキル管理
-- **サイト設定**: メタ情報・連絡先設定
-- **ダッシュボード**: 統計・アクティビティログ
-
-### 3. 画像管理
-- **自動最適化**: AVIF形式への変換
-- **複数画像対応**: プロジェクトごとに最大5枚
-- **ストレージ管理**: Supabase Storage統合
-- **削除機能**: 安全な画像削除
-
-### 4. セキュリティ
-- **認証**: Supabase Auth + GitHub OAuth
-- **認可**: Row Level Security (RLS)
-- **管理者制限**: 環境変数による管理者メール指定
-- **CSRF保護**: Next.js標準機能
-
-### 5. UX最適化機能
-- **レスポンシブデザイン**: 全デバイス対応
+### 🎨 フロントエンド機能
+- **レスポンシブ実績一覧**: グリッドレイアウト、動的フィルタリング
+- **スマートフォン最適化**: Intersection Observer活用の自動エフェクト
+- **プロジェクト詳細**: マークダウン対応、画像ギャラリー
 - **ダークモード**: システム設定連動
-- **スマホエフェクト**: スクロール位置に応じた自動ホバーエフェクト
-- **フィルター機能**: 
-  - リアルタイム検索・フィルタリング
-  - ローカルストレージによる状態保持
-  - アニメーション付きUI
+- **アニメーション**: Framer Motion活用の滑らかなトランジション
 
-## 🚀 デプロイ
+### 🔧 管理機能
+- **プロジェクト管理**: 作成・編集・削除・並び替え
+- **ファイルアップロード**: ドラッグ&ドロップ、プレビュー機能
+- **統計ダッシュボード**: リアルタイムデータ、アクティビティログ
+- **設定管理**: サイト情報、連絡先情報
 
-### Vercel (推奨)
+### 📊 パフォーマンス最適化
+- **Server Components**: 初期ページロード高速化
+- **画像最適化**: Next.js Image コンポーネント活用
+- **並列データ取得**: Promise.all活用による高速化
+- **適切なキャッシュ戦略**: ISR、動的キャッシュ
 
-1. GitHubリポジトリをVercelに接続
-2. 環境変数を設定
-3. 自動デプロイを有効化
+## 🔧 開発ガイド
 
-### 環境変数の設定
-本番環境では以下の環境変数が必要：
-- Supabase接続情報
-- 管理者メールアドレス
-- メール送信API設定
-- Slack連携設定（オプション）
+### コード品質
+- **ESLint**: 統一されたコーディング規約
+- **TypeScript**: 厳密型チェック
+- **コメント**: JSDoc形式の詳細なドキュメント
 
-## 📚 開発ガイド
-
-### コーディング規約
-- **TypeScript厳格モード**: 型安全性の確保
-- **ESLint設定準拠**: コード品質の維持
-- **shadcn/ui コンポーネント優先使用**: UI一貫性の確保
-- **Server Components デフォルト使用**: パフォーマンス最適化
-- **カスタムフック活用**: ロジックの再利用性向上
-
-### アーキテクチャ原則
-- **単一責任の原則**: 各ファイル・関数は一つの責任のみ
-- **関心の分離**: ビジネスロジックとUIロジックの分離
-- **DRY原則**: コードの重複を避ける
-- **型安全性**: TypeScriptの型システムを最大限活用
-
-### ディレクトリ規約
-- `app/` - ページとAPI Routes
-- `components/` - 再利用可能コンポーネント
-- `hooks/` - カスタムフック（ビジネスロジック）
-- `lib/constants/` - 定数定義
-- `lib/utils/` - ユーティリティ関数
-- `dal/` - データアクセス層
+### 設計原則
+- **Single Responsibility**: 単一責任の原則
+- **DRY**: コードの重複排除
+- **SOLID**: オブジェクト指向設計原則
+- **関心の分離**: ロジック、UI、データの明確な分離
 
 ### コンポーネント設計指針
-- **Props型定義**: 全てのPropsに明確な型定義
-- **デフォルトProps**: 適切なデフォルト値の設定
-- **エラーハンドリング**: 適切なエラー境界の設定
-- **アクセシビリティ**: WAI-ARIA準拠
+- **Compound Components**: 複合コンポーネントパターン
+- **Props型定義**: 厳密なProps型定義
+- **アクセシビリティ**: ARIA属性、キーボード操作対応
+- **テスタビリティ**: テストしやすい構造
 
-### カスタムフック設計指針
-- **単一責任**: 一つの機能に特化
-- **再利用性**: 複数のコンポーネントで使用可能
-- **型安全性**: 戻り値の型定義
-- **副作用管理**: useEffectの適切な使用
+## 📚 ドキュメント
 
-## 🔍 テスト・デバッグ
+### 設定ガイド
+- [GitHub OAuth設定](docs/github-oauth-setup.md)
+- [Slack統合設定](docs/slack-integration-setup.md)
+- [Resend設定](docs/resend-setup.md)
 
-### 型チェック
-```bash
-# TypeScriptコンパイルエラーチェック
-npx tsc --noEmit
-```
-
-### テストスクリプト
-```bash
-# GitHub OAuth設定テスト
-node scripts/test-github-auth.js
-
-# Slack連携テスト
-node scripts/test-slack-setup.js
-```
-
-### デバッグ
-- 開発環境でのエラーログ確認
-- Supabaseダッシュボードでデータベース確認
-- ブラウザ開発者ツールでネットワーク確認
-- React Developer Toolsでコンポーネント状態確認
+### API仕様
+- REST API エンドポイント仕様
+- エラーレスポンス形式
+- 認証・認可方式
 
 ## 🔧 保守・拡張ガイド
 
-### 新機能追加手順
+### 新機能追加時の手順
 1. **要件定義**: 機能仕様の明確化
-2. **設計**: コンポーネント・フック設計
-3. **実装**: 型安全性を重視した実装
-4. **テスト**: 動作確認・型チェック
-5. **ドキュメント更新**: README・コメント更新
+2. **型定義**: TypeScript型の追加・更新
+3. **DAL実装**: データアクセス層の実装
+4. **コンポーネント作成**: UI コンポーネントの実装
+5. **API実装**: 必要に応じてAPIエンドポイント追加
+6. **テスト**: 機能テスト・統合テスト
+7. **ドキュメント更新**: README、コメント更新
 
-### リファクタリング指針
-- **段階的改善**: 小さな単位での継続的改善
-- **テスト保持**: 既存機能の動作保証
-- **型安全性維持**: TypeScriptエラーゼロを維持
-- **パフォーマンス監視**: Core Web Vitalsの監視
+### パフォーマンス監視
+- **Core Web Vitals**: 定期的な測定・改善
+- **バンドルサイズ**: webpack-bundle-analyzer活用
+- **ログ分析**: エラーログ、パフォーマンスログの監視
 
-### トラブルシューティング
-- **ビルドエラー**: 型定義・import文の確認
-- **実行時エラー**: コンソールログ・エラー境界の確認
-- **パフォーマンス問題**: React DevToolsでのプロファイリング
-- **UI問題**: レスポンシブデザイン・アクセシビリティの確認
+### セキュリティ
+- **依存関係更新**: 定期的なパッケージ更新
+- **脆弱性スキャン**: npm audit実行
+- **環境変数管理**: 機密情報の適切な管理
 
-## 📖 ドキュメント
+## 🚀 デプロイメント
 
-- [GitHub OAuth設定](docs/github-oauth-setup.md)
-- [Resend設定](docs/resend-setup.md)
-- [Slack連携設定](docs/slack-integration-setup.md)
-- [Supabaseストレージ設定](README-supabase-storage.md)
+### Vercel（推奨）
+```bash
+npm run build
+vercel --prod
+```
 
-## 🤝 コントリビューション
+### 環境別設定
+- **開発環境**: 詳細ログ、デバッグ機能有効
+- **ステージング環境**: 本番類似環境でのテスト
+- **本番環境**: 最適化、エラーログのみ
 
-1. フォークしてブランチを作成
-2. 変更を実装
-3. 型チェック・テストを実行
-4. プルリクエストを作成
+## 📝 更新履歴
 
-### コントリビューション指針
-- **コーディング規約遵守**: ESLint・TypeScript設定に従う
-- **テスト実行**: 変更による既存機能への影響確認
-- **ドキュメント更新**: 変更内容に応じたドキュメント更新
-- **レビュー対応**: コードレビューでの指摘事項への対応
+### v0.3.0 (2024-01-XX) - 大規模最適化リリース
+#### 🔄 コアアーキテクチャ改善
+- **DAL層完全リファクタリング**: エラーハンドリング、ログ機能、パフォーマンス最適化
+- **型定義強化**: BaseEntity導入、厳密な型定義、ProjectCategory型追加
+- **エラーハンドリングシステム**: 統一されたAPIエラー処理、カスタムエラークラス
+
+#### 🛠️ 開発者体験向上
+- **デバッグ機能**: 開発環境でのログ出力、エラー詳細表示
+- **ユーティリティ関数拡充**: safeAsync、removeUndefined、safeSortArray等
+- **コードドキュメント**: JSDoc形式の詳細ドキュメント追加
+
+#### 🗄️ データベース最適化
+- **MCPマイグレーション**: site_iconカラム削除マイグレーション実行
+- **並列データ取得**: Promise.all活用による高速化
+- **クエリ最適化**: 適切なインデックス活用
+
+#### 🔧 保守性向上
+- **設計原則統一**: SOLID原則適用、関心の分離
+- **エラー対応改善**: 統一エラーハンドリング、詳細ログ
+- **型安全性強化**: 厳密型チェック、型定義の完全性
+
+### v0.2.0 (2024-01-XX) - 大規模リファクタリング
+- スマートフォン最適化機能
+- カスタムフック分離による保守性向上
+- マークダウンパーサー統一
+- ページ遷移ローディング効果
+
+### v0.1.0 (2024-01-XX) - 初期リリース
+- 基本的なポートフォリオ機能
+- 管理画面実装
+- Supabase統合
+
+## 🤝 貢献
+
+プルリクエスト歓迎！以下の点にご注意ください：
+- ESLint ルールの遵守
+- TypeScript 型定義の追加
+- 適切なコメント・ドキュメント
+- テスト追加（該当する場合）
 
 ## 📄 ライセンス
 
-このプロジェクトはMITライセンスの下で公開されています。
+MIT License
 
-## 🙋‍♂️ サポート
+## 🔗 関連リンク
 
-問題が発生した場合：
-1. [Issues](https://github.com/your-repo/issues)で既存の問題を確認
-2. 新しいIssueを作成
-3. 詳細な再現手順を記載
-4. 環境情報（ブラウザ・OS・Node.jsバージョン）を含める
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Supabase Documentation](https://supabase.com/docs)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
 
 ---
 
-**開発者**: Rikiya Nishimura  
-**バージョン**: 0.2.0  
-**最終更新**: 2025年1月2日  
-**主要更新**: 大規模リファクタリング・スマホ最適化・保守性向上
+**Created with ❤️ using Next.js 15 and modern web technologies**
