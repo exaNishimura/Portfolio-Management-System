@@ -7,6 +7,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // ソースマップを本番環境で有効化（デバッグとLighthouse分析のため）
+  productionBrowserSourceMaps: true,
   experimental: {
     optimizePackageImports: [
       'lucide-react', 
@@ -124,6 +126,9 @@ const nextConfig = {
       
       // Tree shakingの代替最適化
       config.optimization.innerGraph = true;
+      
+      // ソースマップの最適化（軽量化）
+      config.devtool = 'source-map';
     }
 
     return config;
@@ -190,6 +195,19 @@ const nextConfig = {
           {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/:path*.map',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
           },
         ],
       },
