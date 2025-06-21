@@ -46,12 +46,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     // 使用されている技術スタックの種類数を取得（カテゴリ数として使用）
     const { data: projects } = await supabase
       .from('projects')
-      .select('tech_stack');
+      .select('technologies');
 
     const allTechStacks = new Set<string>();
     projects?.forEach(project => {
-      if (project.tech_stack && Array.isArray(project.tech_stack)) {
-        project.tech_stack.forEach((tech: string) => allTechStacks.add(tech));
+      if (project.technologies && Array.isArray(project.technologies)) {
+        project.technologies.forEach((tech: string) => allTechStacks.add(tech));
       }
     });
 
