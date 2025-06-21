@@ -293,6 +293,83 @@ MIT License
 - [shadcn/ui](https://ui.shadcn.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
 
+## Bundle Analyzer
+
+### 概要
+プロジェクトには@next/bundle-analyzerが導入されており、バンドルサイズの詳細分析が可能です。
+
+### 使用方法
+
+#### 基本的な分析
+```bash
+npm run analyze
+```
+クライアント、サーバー、エッジランタイムの全体的なバンドル分析を実行します。
+
+#### 特定の環境の分析
+```bash
+# サーバーサイドバンドルのみ
+npm run analyze:server
+
+# ブラウザバンドルのみ  
+npm run analyze:browser
+```
+
+### 生成されるレポート
+
+分析実行後、`.next/analyze/` ディレクトリに以下のHTMLレポートが生成されます：
+
+- `client.html` - クライアントサイドバンドルの詳細分析
+- `nodejs.html` - Node.jsサーバーサイドバンドルの分析  
+- `edge.html` - エッジランタイムバンドルの分析
+
+### 分析結果の活用
+
+#### チャンク最適化の確認
+- 各ライブラリのサイズと影響度を視覚的に確認
+- 重複する依存関係の特定
+- Tree shakingの効果測定
+
+#### パフォーマンス改善の指標
+- First Load JSのサイズ監視
+- 共通チャンクの分割効率確認
+- 動的インポートの最適化検討
+
+### 現在の最適化状況
+
+```
+First Load JS shared by all: 556 kB
+├ chunks/common-8637b99be2bdced3.js: 426 kB
+├ css/dc2d4e2321a43c04.css: 128 kB  
+└ other shared chunks (total): 1.91 kB
+```
+
+#### 効果的な分割結果
+- フレームワーク（React/Next.js）: 最優先分離
+- UIライブラリ（Radix UI）: 専用チャンク（maxSize: 150KB）
+- 重いライブラリ（Framer Motion）: 独立チャンク
+- データベース（Supabase）: 分離済み
+- その他vendor: 適切サイズ制限（maxSize: 200KB）
+
+### トラブルシューティング
+
+#### 大きなチャンクの対処
+1. Bundle Analyzerで大きな依存関係を特定
+2. Dynamic Importによる遅延ロード検討
+3. 代替ライブラリの検討
+
+#### 重複依存関係の解決
+1. package.jsonでのバージョン統一
+2. webpack設定での依存関係マッピング
+3. モノレポ環境でのhoisting最適化
+
+### 継続的な監視
+
+定期的にBundle Analyzerを実行し、以下を監視：
+- バンドルサイズの増加傾向
+- 新しい依存関係の影響
+- 最適化効果の測定
+
 ---
 
 **Created with ❤️ using Next.js 15 and modern web technologies**

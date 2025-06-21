@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 
 export function PerformanceOptimizations() {
   useEffect(() => {
-    // Critical resources preload
-    const preloadCriticalResources = () => {
-      // Preload important images
+    // requestIdleCallbackを使用して非ブロッキング実行
+    const optimize = () => {
+      // Critical resourcesのプリロードを最小化
       const criticalImages = [
         '/placeholder-avatar.webp',
         '/placeholder-project.webp'
@@ -19,14 +19,10 @@ export function PerformanceOptimizations() {
         link.href = src;
         document.head.appendChild(link);
       });
-    };
 
-    // DNS prefetch for external domains
-    const dnsPrefetch = () => {
+      // 重要なドメインのみDNS prefetch
       const domains = [
-        'https://images.unsplash.com',
-        'https://fonts.googleapis.com',
-        'https://fonts.gstatic.com'
+        'https://images.unsplash.com'
       ];
 
       domains.forEach(domain => {
@@ -37,29 +33,28 @@ export function PerformanceOptimizations() {
       });
     };
 
-    preloadCriticalResources();
-    dnsPrefetch();
-
-    // Intersection Observer for lazy loading improvements
-    if ('IntersectionObserver' in window) {
-      const lazyImages = document.querySelectorAll('img[loading="lazy"]');
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement;
-            img.loading = 'eager';
-            observer.unobserve(img);
+    // PerformanceObserver for LCP monitoring
+    if ('PerformanceObserver' in window) {
+      const observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.entryType === 'largest-contentful-paint') {
+            // LCP metrics tracking
+            console.log('LCP:', entry.startTime);
           }
-        });
-      }, {
-        rootMargin: '50px 0px'
+        }
       });
+      
+      observer.observe({ entryTypes: ['largest-contentful-paint'] });
+      
+      // 10秒後に自動停止
+      setTimeout(() => observer.disconnect(), 10000);
+    }
 
-      lazyImages.forEach(img => imageObserver.observe(img));
-
-      return () => {
-        lazyImages.forEach(img => imageObserver.unobserve(img));
-      };
+    // アイドル時間での最適化実行
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(optimize, { timeout: 2000 });
+    } else {
+      setTimeout(optimize, 100);
     }
   }, []);
 
