@@ -128,7 +128,14 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await getProfile();
+  // プロファイル取得（エラー時はnullを返す）
+  let profile = null;
+  try {
+    profile = await getProfile();
+  } catch (error) {
+    // 認証エラーや接続エラーの場合は無視してnullのまま続行
+    console.warn('Profile fetch failed in layout:', error);
+  }
 
   return (
     <html lang="ja" suppressHydrationWarning>

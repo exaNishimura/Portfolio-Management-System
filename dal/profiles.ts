@@ -23,22 +23,33 @@ export async function getProfile(options: GetProfileOptions = {}): Promise<Profi
   debugLog('getProfile called', options);
   
   const [error, result] = await safeAsync(async () => {
-    const supabase = await createClient();
-    
-    const { data, error } = await supabase
-      .from('profiles')
-      .select(select)
-      .single();
+    try {
+      const supabase = await createClient();
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(select)
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // プロフィールが見つからない場合
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // プロフィールが見つからない場合
+          return null;
+        }
+        throw new Error(`Supabase query failed: ${error.message}`);
+      }
+
+      return data;
+    } catch (cookieError) {
+      // cookiesアクセスエラーの場合は静的生成のためnullを返す
+      if (cookieError instanceof Error && 
+          (cookieError.message.includes('cookies') || 
+           cookieError.message.includes('Dynamic server usage'))) {
+        debugLog('Cookie access error in static generation, returning null');
         return null;
       }
-      throw new Error(`Supabase query failed: ${error.message}`);
+      throw cookieError;
     }
-
-    return data;
   });
 
   if (error) {
