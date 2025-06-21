@@ -62,6 +62,11 @@ export function parseMarkdown(text: string): string {
 
   html = processedLines.join('\n');
 
+  // 見出しタグの直後の改行を削除
+  html = html
+    .replace(/(<\/h[1-6]>)\n+/g, '$1')
+    .replace(/(<\/ul>)\n+/g, '$1');
+
   // 改行処理（行間を広げる）
   html = html
     .replace(/\n\n/g, '</p><p class="mb-5 leading-relaxed">')
