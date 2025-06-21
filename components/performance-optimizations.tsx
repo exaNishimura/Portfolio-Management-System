@@ -8,8 +8,8 @@ export function PerformanceOptimizations() {
     const preloadCriticalResources = () => {
       // Preload important images
       const criticalImages = [
-        '/placeholder-avatar.jpg',
-        '/placeholder-project.jpg'
+        '/placeholder-avatar.webp',
+        '/placeholder-project.webp'
       ];
 
       criticalImages.forEach(src => {

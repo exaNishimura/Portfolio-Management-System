@@ -120,14 +120,14 @@ export function HeroSection({ profile }: HeroSectionProps) {
             <div className="flex items-center space-x-4">
               <div className="relative w-20 h-20 rounded-full overflow-hidden ring-4 ring-violet-200 dark:ring-violet-800 shadow-xl shadow-violet-500/10">
                 <Image 
-                  src={profile.avatar_url || '/placeholder-avatar.jpg'} 
+                  src={profile.avatar_url || '/placeholder-avatar.webp'} 
                   alt={profile.name}
                   fill
                   className="object-cover"
                   sizes="80px"
                   priority={true}
                   placeholder="blur"
-                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                  blurDataURL="data:image/webp;base64,UklGRi4AAABXRUJQVlA4TCEAAAAvAUAAEB/wABHh7xNwAAAg4AAR4e8TcAAA"
                 />
                 {/* キラキラエフェクト - 斜め光 */}
                 <motion.div
