@@ -1,24 +1,28 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
-  ExternalLink, 
-  Github, 
+  Filter, 
+  SortAsc, 
   Star, 
-  Filter,
+  ExternalLink, 
+  Github,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  X,
+  Minimize2,
+  Maximize2
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import Image from 'next/image';
+import Link from 'next/link';
 import { SkillIcon } from '@/lib/utils/skill-icons';
 import { parseMarkdown } from '@/lib/utils/markdown-parser';
 import { Project } from '@/types';
@@ -57,6 +61,11 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
   const [isTechFilterOpen, setIsTechFilterOpen] = useState(false);
   const [isSortFilterOpen, setIsSortFilterOpen] = useState(false);
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(true);
+  
+  // スマホでのスクロールエフェクト用の状態
+  const [visibleCards, setVisibleCards] = useState<Set<string>>(new Set());
+  const [isMobile, setIsMobile] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // 全技術スタックを取得
   const allTechnologies = useMemo(() => {
@@ -94,6 +103,81 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
 
     return sorted;
   }, [projects, selectedTechnologies, sortBy]);
+
+  // モバイル判定
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Intersection Observer の設定
+  const setupIntersectionObserver = useCallback(() => {
+    if (!isMobile) return;
+
+    // 既存のオブザーバーをクリーンアップ
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // 新しいオブザーバーを作成
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const newVisibleCards = new Set(visibleCards);
+        
+        entries.forEach((entry) => {
+          const cardId = entry.target.getAttribute('data-project-id');
+          if (!cardId) return;
+
+          if (entry.isIntersecting) {
+            // カードが画面中央付近に来た場合
+            newVisibleCards.add(cardId);
+          } else {
+            // カードが画面から離れた場合
+            newVisibleCards.delete(cardId);
+          }
+        });
+
+        setVisibleCards(newVisibleCards);
+      },
+      {
+        root: null,
+        rootMargin: '-20% 0px -20% 0px', // 画面の中央60%の範囲
+        threshold: 0.3 // カードの30%が見えたら発動
+      }
+    );
+
+    // 全てのプロジェクトカードを監視対象に追加
+    const cards = document.querySelectorAll('[data-project-id]');
+    cards.forEach((card) => {
+      if (observerRef.current) {
+        observerRef.current.observe(card);
+      }
+    });
+  }, [isMobile, visibleCards]);
+
+  // プロジェクトが変更されたときにオブザーバーを再設定
+  useEffect(() => {
+    if (filteredAndSortedProjects.length > 0) {
+      // DOM更新を待ってからオブザーバーを設定
+      const timer = setTimeout(setupIntersectionObserver, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [filteredAndSortedProjects, setupIntersectionObserver]);
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
 
   // フィルター開閉状態をlocalStorageから復元
   useEffect(() => {
@@ -151,50 +235,45 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
     };
   }, []);
 
-
-
   const handleTechnologyChange = (tech: string, checked: boolean | 'indeterminate') => {
-    if (checked === 'indeterminate') return;
-    
-    setSelectedTechnologies(prev => {
-      if (checked) {
-        return [...prev, tech];
-      } else {
-        return prev.filter(t => t !== tech);
-      }
-    });
+    if (checked === true) {
+      setSelectedTechnologies(prev => [...prev, tech]);
+    } else {
+      setSelectedTechnologies(prev => prev.filter(t => t !== tech));
+    }
   };
 
   const clearFilters = () => {
     setSelectedTechnologies([]);
     setSortBy('newest');
-    setIsTechFilterOpen(false);
-    setIsSortFilterOpen(false);
   };
 
   return (
     <>
-      {/* フローティングフィルター - 画面右下に固定 */}
+      {/* フローティングフィルター */}
       <AnimatePresence>
         {isFilterVisible && (
-          <motion.div 
-            className="fixed bottom-6 right-6 z-50"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="fixed bottom-6 right-6 z-40"
           >
-            {/* フィルターアイコン（画面右下に固定） */}
-            <div className="absolute bottom-0 right-0 z-10">
-              <div 
-                className="p-3 cursor-pointer hover:bg-white/10 rounded-full transition-all duration-200"
-                onClick={() => setIsSidebarMinimized(!isSidebarMinimized)}
-              >
-                <Filter className="h-6 w-6 text-slate-700 dark:text-white" />
-              </div>
-            </div>
+            {/* フィルターボタン */}
+            <motion.button
+              onClick={() => setIsSidebarMinimized(!isSidebarMinimized)}
+              className="bg-white/20 dark:bg-black/30 backdrop-blur-xl border border-white/30 dark:border-white/20 rounded-full p-4 shadow-2xl hover:bg-white/30 dark:hover:bg-black/40 transition-all duration-200 mb-4"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {isSidebarMinimized ? (
+                <Filter className="h-6 w-6 text-slate-800 dark:text-white" />
+              ) : (
+                <X className="h-6 w-6 text-slate-800 dark:text-white" />
+              )}
+            </motion.button>
 
-            {/* フィルター内容パネル（展開時のみ表示） */}
+            {/* フィルターパネル */}
             <AnimatePresence>
               {!isSidebarMinimized && (
                 <motion.div
@@ -212,7 +291,7 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                     </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-6 overflow-y-auto max-h-[calc(70vh-120px)]">
                     {/* 技術スタックフィルター */}
                     <Collapsible open={isTechFilterOpen} onOpenChange={setIsTechFilterOpen}>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-white/20 dark:bg-black/20 hover:bg-white/30 dark:hover:bg-black/30 rounded-xl transition-colors backdrop-blur-sm">
@@ -221,23 +300,23 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <div className="mt-3 max-h-64 overflow-y-auto">
-                          <div className="flex flex-wrap gap-2">
+                          <div className="space-y-3">
                             {allTechnologies.map((tech) => (
-                              <Badge 
-                                key={tech} 
-                                variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
-                                className={`text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5 transition-all duration-200 ${
-                                  selectedTechnologies.includes(tech) 
-                                    ? "bg-primary text-primary-foreground hover:bg-primary/90" 
-                                    : "bg-white dark:bg-black text-slate-800 dark:text-white border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900"
-                                }`}
-                                onClick={() => {
-                                  handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
-                                }}
-                              >
-                                <SkillIcon skill={tech} size={12} />
-                                {tech}
-                              </Badge>
+                              <div key={tech} className="flex items-center space-x-3">
+                                <Checkbox
+                                  id={`floating-tech-${tech}`}
+                                  checked={selectedTechnologies.includes(tech)}
+                                  onCheckedChange={(checked) => handleTechnologyChange(tech, checked)}
+                                  className="border-slate-600 dark:border-slate-400 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
+                                />
+                                <Label 
+                                  htmlFor={`floating-tech-${tech}`} 
+                                  className="text-sm cursor-pointer flex-1 text-slate-800 dark:text-white flex items-center gap-2"
+                                >
+                                  <SkillIcon skill={tech} size={16} />
+                                  {tech}
+                                </Label>
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -320,8 +399,6 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
               </p>
             </motion.div>
 
-
-
             {/* プロジェクト一覧 */}
             <motion.div 
               variants={itemVariants} 
@@ -342,105 +419,120 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
               ) : (
                 <div id="projects-grid" className="grid gap-8 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3">
                   <AnimatePresence mode="popLayout">
-                    {filteredAndSortedProjects.map((project: Project) => (
-                      <motion.div 
-                        key={project.id} 
-                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                        layout
-                        transition={{ 
-                          duration: 0.3,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        <Card className="group h-full flex flex-col overflow-hidden hover:shadow-2xl hover:scale-105 transition-all duration-300 ease-out">
-                          {/* 画像セクション */}
-                          {((project.images && project.images.length > 0) || project.image_url) && (
-                            <Link href={`/projects/detail/${project.id}`}>
-                              <div className="relative w-full h-64 overflow-hidden">
-                                <Image 
-                                  src={(project.images && project.images.length > 0) ? project.images[0] : project.image_url!} 
-                                  alt={project.title} 
-                                  fill 
-                                  className="object-cover grayscale group-hover:grayscale-0 transition-all duration-300" 
+                    {filteredAndSortedProjects.map((project: Project) => {
+                      // スマホでスクロール時の表示状態を判定
+                      const isVisibleOnMobile = isMobile && visibleCards.has(project.id);
+                      const shouldShowEffect = !isMobile || isVisibleOnMobile;
+                      
+                      return (
+                        <motion.div 
+                          key={project.id} 
+                          data-project-id={project.id}
+                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                          layout
+                          transition={{ 
+                            duration: 0.3,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          <Card className={`group h-full flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+                            shouldShowEffect 
+                              ? 'hover:shadow-2xl hover:scale-105 shadow-2xl scale-105' 
+                              : 'hover:shadow-2xl hover:scale-105'
+                          }`}>
+                            {/* 画像セクション */}
+                            {((project.images && project.images.length > 0) || project.image_url) && (
+                              <Link href={`/projects/detail/${project.id}`}>
+                                <div className="relative w-full h-64 overflow-hidden">
+                                  <Image 
+                                    src={(project.images && project.images.length > 0) ? project.images[0] : project.image_url!} 
+                                    alt={project.title} 
+                                    fill 
+                                    className={`object-cover transition-all duration-300 ${
+                                      shouldShowEffect 
+                                        ? 'grayscale-0' 
+                                        : 'grayscale group-hover:grayscale-0'
+                                    }`}
+                                  />
+                                  {/* 注目バッジ - 画像右上に配置 */}
+                                  {project.is_featured && (
+                                    <div className="absolute top-3 right-3 z-10">
+                                      <Badge 
+                                        variant="secondary" 
+                                        className="bg-yellow-500 text-white shadow-lg backdrop-blur-sm border-0 font-semibold"
+                                      >
+                                        <Star className="h-3 w-3 mr-1 fill-current" />
+                                        注目
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
+                              </Link>
+                            )}
+                            
+                            {/* コンテンツセクション */}
+                            <div className="flex flex-col flex-1 p-6">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg line-clamp-2 mb-2">
+                                  {project.title}
+                                </CardTitle>
+                                <div 
+                                  className="line-clamp-3 text-sm mt-2 text-muted-foreground mb-4"
+                                  dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
                                 />
-                                {/* 注目バッジ - 画像右上に配置 */}
-                                {project.is_featured && (
-                                  <div className="absolute top-3 right-3 z-10">
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="bg-yellow-500 text-white shadow-lg backdrop-blur-sm border-0 font-semibold"
-                                    >
-                                      <Star className="h-3 w-3 mr-1 fill-current" />
-                                      注目
-                                    </Badge>
-                                  </div>
+                              </div>
+                              
+                              {/* 技術タグ */}
+                              <div className="flex flex-wrap gap-2 mb-4">
+                                {project.technologies.slice(0, 6).map((tech: string) => (
+                                  <Badge 
+                                    key={tech} 
+                                    variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
+                                    className="text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5"
+                                    onClick={() => {
+                                      handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
+                                    }}
+                                  >
+                                    <SkillIcon skill={tech} size={12} />
+                                    {tech}
+                                  </Badge>
+                                ))}
+                                {project.technologies.length > 6 && (
+                                  <Badge variant="outline" className="text-xs px-3 py-1">
+                                    +{project.technologies.length - 6}
+                                  </Badge>
                                 )}
                               </div>
-                            </Link>
-                          )}
-                          
-                          {/* コンテンツセクション */}
-                          <div className="flex flex-col flex-1 p-6">
-                            <div className="flex-1">
-                              <CardTitle className="text-lg line-clamp-2 mb-2">
-                                {project.title}
-                              </CardTitle>
-                              <div 
-                                className="line-clamp-3 text-sm mt-2 text-muted-foreground mb-4"
-                                dangerouslySetInnerHTML={{ __html: parseMarkdown(project.description || '') }}
-                              />
+                              
+                              {/* ボタンセクション - 最下部に固定 */}
+                              <div className="flex gap-2 mt-auto">
+                                <Link href={`/projects/detail/${project.id}`} className="flex-1">
+                                  <Button variant="outline" className="w-full">
+                                    詳細を見る
+                                  </Button>
+                                </Link>
+                                {project.project_url && (
+                                  <Button variant="outline" size="icon" asChild>
+                                    <a href={project.project_url} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
+                                {project.github_url && (
+                                  <Button variant="outline" size="icon" asChild>
+                                    <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+                                      <Github className="h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                            
-                            {/* 技術タグ */}
-                            <div className="flex flex-wrap gap-2 mb-4">
-                              {project.technologies.slice(0, 6).map((tech: string) => (
-                                <Badge 
-                                  key={tech} 
-                                  variant={selectedTechnologies.includes(tech) ? "default" : "outline"} 
-                                  className="text-xs px-3 py-1 cursor-pointer flex items-center gap-1.5"
-                                  onClick={() => {
-                                    handleTechnologyChange(tech, !selectedTechnologies.includes(tech));
-                                  }}
-                                >
-                                  <SkillIcon skill={tech} size={12} />
-                                  {tech}
-                                </Badge>
-                              ))}
-                              {project.technologies.length > 6 && (
-                                <Badge variant="outline" className="text-xs px-3 py-1">
-                                  +{project.technologies.length - 6}
-                                </Badge>
-                              )}
-                            </div>
-                            
-                            {/* ボタンセクション - 最下部に固定 */}
-                            <div className="flex gap-2 mt-auto">
-                              <Link href={`/projects/detail/${project.id}`} className="flex-1">
-                                <Button variant="outline" className="w-full">
-                                  詳細を見る
-                                </Button>
-                              </Link>
-                              {project.project_url && (
-                                <Button variant="outline" size="icon" asChild>
-                                  <a href={project.project_url} target="_blank" rel="noopener noreferrer">
-                                    <ExternalLink className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              )}
-                              {project.github_url && (
-                                <Button variant="outline" size="icon" asChild>
-                                  <a href={project.github_url} target="_blank" rel="noopener noreferrer">
-                                    <Github className="h-4 w-4" />
-                                  </a>
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </Card>
-                      </motion.div>
-                    ))}
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
                   </AnimatePresence>
                 </div>
               )}
