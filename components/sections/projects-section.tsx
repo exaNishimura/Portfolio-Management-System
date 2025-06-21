@@ -71,9 +71,10 @@ export function ProjectsSection({ projects, isLoading = false }: ProjectsSection
         style={{ opacity: 1, visibility: 'visible' }}
       >
         <div className="container mx-auto max-w-7xl">
-          <motion.div
+                      <motion.div
             initial="hidden"
-            animate="visible"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-10%" }}
             variants={ANIMATION_VARIANTS.container}
           >
             {/* セクションヘッダー */}

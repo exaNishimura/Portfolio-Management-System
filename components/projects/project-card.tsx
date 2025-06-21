@@ -53,13 +53,17 @@ export function ProjectCard({
                     ? 'grayscale-0' 
                     : 'grayscale group-hover:grayscale-0'
                 }`}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
               />
               {/* 注目バッジ - 画像右上に配置 */}
               {project.is_featured && (
                 <div className="absolute top-3 right-3 z-10">
                   <Badge 
                     variant="secondary" 
-                    className="bg-yellow-500 text-white shadow-lg backdrop-blur-sm border-0 font-semibold"
+                    className="bg-amber-600 text-white shadow-lg backdrop-blur-sm border-0 font-semibold"
                   >
                     <Star className="h-3 w-3 mr-1 fill-current" />
                     注目
@@ -113,14 +117,24 @@ export function ProjectCard({
             </Link>
             {project.project_url && (
               <Button variant="outline" size="icon" asChild>
-                <a href={project.project_url} target="_blank" rel="noopener noreferrer">
+                <a 
+                  href={project.project_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  aria-label={`${project.title}のサイトを見る`}
+                >
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </Button>
             )}
             {project.github_url && (
               <Button variant="outline" size="icon" asChild>
-                <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+                <a 
+                  href={project.github_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  aria-label={`${project.title}のGitHubリポジトリを見る`}
+                >
                   <Github className="h-4 w-4" />
                 </a>
               </Button>

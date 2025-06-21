@@ -8,23 +8,33 @@ import Footer from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { PerformanceOptimizations } from '@/components/performance-optimizations';
 import { getProfile } from '@/dal/profiles';
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ 
+  subsets: ['latin'], 
+  variable: '--font-inter',
+  display: 'swap',
+  preload: true
+});
 const notoSansJP = Noto_Sans_JP({ 
   subsets: ['latin'], 
   variable: '--font-noto-sans-jp',
-  weight: ['300', '400', '500', '700']
+  weight: ['300', '400', '500', '700'],
+  display: 'swap',
+  preload: true
 });
 const pacifico = Pacifico({ 
   subsets: ['latin'], 
   variable: '--font-pacifico',
-  weight: '400'
+  weight: '400',
+  display: 'swap'
 });
 const yellowtail = Yellowtail({ 
   subsets: ['latin'], 
   variable: '--font-yellowtail',
-  weight: '400'
+  weight: '400',
+  display: 'swap'
 });
 
 export const metadata: Metadata = {
@@ -32,11 +42,19 @@ export const metadata: Metadata = {
   description: 'Web開発者のポートフォリオサイト。WordPress、Next.js、Reactを使用した制作実績をご覧いただけます。',
   keywords: 'Web開発, ポートフォリオ, WordPress, Next.js, React, TypeScript',
   authors: [{ name: 'Portfolio Site' }],
+  viewport: 'width=device-width, initial-scale=1',
+  robots: 'index, follow',
   openGraph: {
     title: 'Portfolio Site - Web Developer',
-    description: 'Web開発者のポートフォリオサイト',
+    description: 'Web開発者のポートフォリオサイト。WordPress、Next.js、Reactを使用した制作実績をご覧いただけます。',
     type: 'website',
     locale: 'ja_JP',
+    siteName: 'Portfolio Site',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Portfolio Site - Web Developer',
+    description: 'Web開発者のポートフォリオサイト。WordPress、Next.js、Reactを使用した制作実績をご覧いただけます。',
   },
 };
 
@@ -92,6 +110,7 @@ export default async function RootLayout({
             </Suspense>
           </div>
           <Toaster />
+          <PerformanceOptimizations />
         </ThemeProvider>
       </body>
     </html>

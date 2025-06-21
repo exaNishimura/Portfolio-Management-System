@@ -195,10 +195,26 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
 
                 {!disabled && !imageError && (
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                     <Button type="button" variant="secondary" size="sm" onClick={handleUploadClick} disabled={isUploading || isDeleting} className="h-8 w-8 p-0 bg-background/90 hover:bg-background border shadow-lg" title="画像を差し替え">
+                     <Button 
+                       type="button" 
+                       variant="secondary" 
+                       size="sm" 
+                       onClick={handleUploadClick} 
+                       disabled={isUploading || isDeleting} 
+                       className="h-8 w-8 p-0 bg-background/90 hover:bg-background border shadow-lg"
+                       aria-label="画像を差し替え"
+                     >
                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                      </Button>
-                    <Button type="button" variant="destructive" size="sm" onClick={handleDelete} disabled={isDeleting || isUploading} className="h-8 w-8 p-0 shadow-lg" title="画像を削除">
+                    <Button 
+                      type="button" 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={handleDelete} 
+                      disabled={isDeleting || isUploading} 
+                      className="h-8 w-8 p-0 shadow-lg"
+                      aria-label="画像を削除"
+                    >
                       {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
                     </Button>
                   </div>
@@ -217,7 +233,14 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
       ) : (
         <Card className="w-48 h-48 mx-auto border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
           <CardContent className="p-0 h-full">
-            <Button type="button" variant="ghost" onClick={handleUploadClick} disabled={disabled || isUploading} className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground">
+            <Button 
+              type="button" 
+              variant="ghost" 
+              onClick={handleUploadClick} 
+              disabled={disabled || isUploading} 
+              className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+              aria-label="画像ファイルを選択"
+            >
               {isUploading ? (
                 <>
                   <Loader2 className="h-12 w-12 animate-spin" />

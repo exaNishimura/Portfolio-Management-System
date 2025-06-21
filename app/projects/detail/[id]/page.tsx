@@ -148,10 +148,12 @@ export default async function ProjectDetailPage({ params }: Props) {
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 800px"
                         priority={true}
+                        placeholder="blur"
+                        blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                       />
                       {project.is_featured && (
                         <div className="absolute top-4 left-4">
-                          <Badge variant="secondary" className="bg-yellow-500 text-white">
+                          <Badge variant="secondary" className="bg-amber-600 text-white">
                             <Star className="h-3 w-3 mr-1" />
                             注目プロジェクト
                           </Badge>
@@ -172,6 +174,9 @@ export default async function ProjectDetailPage({ params }: Props) {
                                 fill
                                 className="object-cover"
                                 sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 200px"
+                                loading="lazy"
+                                placeholder="blur"
+                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
                               />
                             </div>
                           ))}
@@ -321,7 +326,7 @@ export default async function ProjectDetailPage({ params }: Props) {
                   {project.is_featured && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">ステータス</span>
-                      <Badge variant="secondary" className="bg-yellow-500 text-white">
+                      <Badge variant="secondary" className="bg-amber-600 text-white">
                         <Star className="h-3 w-3 mr-1" />
                         注目
                       </Badge>

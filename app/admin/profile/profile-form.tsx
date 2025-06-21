@@ -508,7 +508,12 @@ export default function ProfileForm() {
 
                 <div className="flex gap-2">
                   <Input placeholder="スキルを入力" value={newSkill} onChange={(e) => setNewSkill(e.target.value)} onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addSkill())} />
-                  <Button type="button" onClick={addSkill} variant="outline">
+                  <Button 
+                    type="button" 
+                    onClick={addSkill} 
+                    variant="outline"
+                    aria-label="スキルを追加"
+                  >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
@@ -518,7 +523,12 @@ export default function ProfileForm() {
                     <Badge key={skill} variant="secondary" className="flex items-center gap-1.5">
                       <SkillIcon skill={skill} size={14} />
                       {skill}
-                      <button type="button" onClick={() => removeSkill(skill)} className="ml-1 hover:text-destructive">
+                      <button 
+                        type="button" 
+                        onClick={() => removeSkill(skill)} 
+                        className="ml-1 hover:text-destructive"
+                        aria-label={`${skill}スキルを削除`}
+                      >
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>

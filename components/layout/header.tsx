@@ -86,6 +86,7 @@ export default function Header() {
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            aria-label={theme === 'light' ? 'ダークモードに切り替え' : 'ライトモードに切り替え'}
           >
             {theme === 'light' ? (
               <Moon className="h-4 w-4" />
@@ -103,7 +104,12 @@ export default function Header() {
                   Admin
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSignOut}
+                aria-label="ログアウト"
+              >
                 Logout
               </Button>
             </div>
@@ -115,6 +121,7 @@ export default function Header() {
             size="sm"
             className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? 'メニューを閉じる' : 'メニューを開く'}
           >
             {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </Button>
@@ -159,6 +166,7 @@ export default function Header() {
                       setIsMenuOpen(false);
                     }}
                     className="flex items-center space-x-2 p-2 rounded-md hover:bg-accent transition-colors duration-200 w-full text-left"
+                    aria-label="ログアウト"
                   >
                     <span>Logout</span>
                   </button>

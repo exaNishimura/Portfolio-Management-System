@@ -33,7 +33,7 @@ export function CTASection() {
         className="container mx-auto max-w-4xl text-center"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: "-10%" }}
         variants={containerVariants}
       >
         <motion.div variants={itemVariants}>
