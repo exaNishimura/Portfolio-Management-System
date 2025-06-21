@@ -2,8 +2,7 @@
 
 export const SORT_OPTIONS = [
   { value: 'newest', label: '新しい順' },
-  { value: 'oldest', label: '古い順' },
-  { value: 'title', label: 'タイトル順' }
+  { value: 'oldest', label: '古い順' }
 ] as const;
 
 export type SortOption = typeof SORT_OPTIONS[number]['value'];

@@ -57,8 +57,6 @@ export function useProjectsFilter({ projects }: UseProjectsFilterProps) {
           // 制作年が同じ場合はポートフォリオ登録年月日で比較
           return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
           
-        case 'title':
-          return a.title.localeCompare(b.title);
         default:
           return 0;
       }
