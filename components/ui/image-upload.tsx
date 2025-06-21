@@ -190,7 +190,7 @@ export function ImageUpload({ value, onChange, disabled, className, onDeleteSucc
                     </div>
                   </div>
                 ) : (
-                  <Image src={value} alt="プロフィール画像" fill className="object-cover" sizes="192px" onError={handleImageError} onLoad={handleImageLoad} priority />
+                  <Image src={value} alt="プロフィール画像" fill className="object-cover" sizes="(max-width: 768px) 160px, 192px" onError={handleImageError} onLoad={handleImageLoad} priority />
                 )}
 
                 {!disabled && !imageError && (

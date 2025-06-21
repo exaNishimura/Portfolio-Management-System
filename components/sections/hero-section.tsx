@@ -124,7 +124,7 @@ export function HeroSection({ profile }: HeroSectionProps) {
                   alt={profile.name}
                   fill
                   className="object-cover"
-                  sizes="80px"
+                  sizes="(max-width: 640px) 64px, 80px"
                   priority={true}
                   placeholder="blur"
                   blurDataURL="data:image/webp;base64,UklGRi4AAABXRUJQVlA4TCEAAAAvAUAAEB/wABHh7xNwAAAg4AAR4e8TcAAA"
